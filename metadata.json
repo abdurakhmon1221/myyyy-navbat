@@ -1,0 +1,8 @@
+{
+  "name": "Copy of NAVBAT yashil",
+  "description": "A digital queue management platform for Uzbekistan focused on fairness, trust, and transparency. Replaces physical queues with a mobile-first digital alternative.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
