@@ -153,7 +153,8 @@ const EmployeeView: React.FC<EmployeeViewProps> = ({ organization, employee, onL
           profile={profile}
           onUpdateProfile={onUpdateProfile}
           onLogout={onLogout}
-          role="EMPLOYEE"
+          role="STAFF"
+          organization={organization}
         />
       )}
 

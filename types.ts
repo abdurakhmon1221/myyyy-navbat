@@ -42,12 +42,19 @@ export interface Organization {
   name: string;
   address: string;
   imageUrl?: string;
+  image?: string; // Alias for imageUrl
   phone?: string;
+  email?: string;
+  website?: string;
+  telegram?: string;
+  instagram?: string;
   description?: string;
   password?: string;
   category: string;
   status: 'OPEN' | 'CLOSED' | 'BUSY';
   estimatedServiceTime: number; // minutes
+  avgServiceTime?: number; // average service time in minutes
+  maxQueueSize?: number; // maximum queue capacity
   employees: Employee[];
   services: Service[];
 

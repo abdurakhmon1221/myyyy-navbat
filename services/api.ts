@@ -691,6 +691,36 @@ export const servicesApi = {
 };
 
 // ============================================================================
+// USERS API
+// ============================================================================
+
+export const userApi = {
+    /** Update FCM Token */
+    async updateFcmToken(userId: string, token: string): Promise<ApiResponse<boolean>> {
+        if (config.api.useMockApi) {
+            console.log(`[MockAPI] FCM Token updated for ${userId}: ${token}`);
+            return simulateLatency({
+                success: true,
+                data: true,
+                message: 'Token updated',
+                timestamp: Date.now()
+            });
+        }
+
+        try {
+            const response = await http.post<{ success: boolean, data: boolean, message: string, timestamp: number }>('/users/fcm-token', {
+                userId,
+                token
+            });
+            return response.data;
+        } catch (error) {
+            console.error('[API] updateFcmToken failed:', error);
+            return { success: false, data: false, error: 'Failed' } as any;
+        }
+    }
+};
+
+// ============================================================================
 // EXPORT UNIFIED CLIENT
 // ============================================================================
 
@@ -699,7 +729,8 @@ export const api = {
     queues: queueApi,
     auth: authApi,
     employees: employeeApi,
-    services: servicesApi
+    services: servicesApi,
+    users: userApi
 };
 
 export default api;

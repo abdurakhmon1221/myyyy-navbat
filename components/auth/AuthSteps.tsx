@@ -105,6 +105,23 @@ export const EntryStep: React.FC<StepProps & { setSelectedRole: (r: UserRole) =>
 // Client Method Step - Phone, Telegram, Google, Guest
 export const ClientMethodStep: React.FC<StepProps & { onStartScanner: () => void, onGuestLogin: () => void, countryCode: string }> = ({ onNavigate, onBack, onStartScanner, onGuestLogin, countryCode }) => {
     const { t } = useLanguage();
+    const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
+
+    const handleGoogleLogin = async () => {
+        setIsGoogleLoading(true);
+        try {
+            const { default: authService } = await import('../../services/authService');
+            await authService.loginWithGoogle();
+            // Success - AuthView listener will handle navigation
+        } catch (error: any) {
+            console.error("Google Login failed", error);
+            if (error.message !== 'Oyna yopildi' && error.message !== "So'rov bekor qilindi") {
+                alert(error.message || "Google orqali kirishda xatolik yuz berdi.");
+            }
+        } finally {
+            setIsGoogleLoading(false);
+        }
+    };
 
     return (
         <div className="space-y-5 animate-slide-up">
@@ -114,67 +131,61 @@ export const ClientMethodStep: React.FC<StepProps & { onStartScanner: () => void
 
             <h3 className="font-black text-[var(--text-main)] text-xl tracking-tight text-center mb-6">{t('choose_login_method')}</h3>
 
-            {/* Login Methods Grid */}
-            <div className="grid grid-cols-2 gap-3">
-                {/* Phone */}
+            {/* Login Methods - Simple List */}
+            <div className="space-y-3">
+                {/* Phone - Primary */}
                 <button
                     onClick={() => onNavigate('OTP_VERIFY')}
-                    className="bg-white dark:bg-slate-800 hover:scale-[1.02] p-5 rounded-[1.5rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl flex flex-col items-center gap-3 transition-all active:scale-95 group"
+                    className="w-full bg-white dark:bg-slate-800 hover:scale-[1.02] p-5 rounded-[2rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl flex items-center gap-4 transition-all active:scale-95 group"
                 >
                     <div className="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-green-200 dark:shadow-none">
                         <Smartphone size={26} className="group-hover:rotate-6 transition-transform" />
                     </div>
-                    <div className="text-center">
-                        <span className="text-xs font-black text-[var(--text-main)] block">{t('phone_login')}</span>
-                        <span className="text-[8px] text-[var(--text-muted)] font-bold mt-0.5 block">{countryCode}</span>
+                    <div className="text-left flex-1">
+                        <span className="text-sm font-black text-[var(--text-main)] block">{t('phone_login')}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] font-bold">{countryCode} • Kod orqali kirish</span>
                     </div>
-                </button>
-
-                {/* Telegram */}
-                <button
-                    onClick={() => window.open('https://oauth.telegram.org/auth?bot_id=navbat_bot&origin=' + encodeURIComponent(window.location.origin), '_blank')}
-                    className="bg-white dark:bg-slate-800 hover:scale-[1.02] p-5 rounded-[1.5rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl flex flex-col items-center gap-3 transition-all active:scale-95 group"
-                >
-                    <div className="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-sky-200 dark:shadow-none">
-                        <Send size={26} className="group-hover:rotate-6 transition-transform" />
-                    </div>
-                    <div className="text-center">
-                        <span className="text-xs font-black text-[var(--text-main)] block">{t('telegram_login')}</span>
-                        <span className="text-[8px] text-[var(--text-muted)] font-bold mt-0.5 block">{t('telegram_login_desc')}</span>
-                    </div>
+                    <ChevronRight className="text-gray-300 group-hover:text-green-500 group-hover:translate-x-1 transition-all" size={20} />
                 </button>
 
                 {/* Google */}
                 <button
-                    onClick={() => window.open('https://accounts.google.com/o/oauth2/auth?client_id=navbat-app&redirect_uri=' + encodeURIComponent(window.location.origin) + '&response_type=token&scope=email%20profile', '_blank')}
-                    className="bg-white dark:bg-slate-800 hover:scale-[1.02] p-5 rounded-[1.5rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl flex flex-col items-center gap-3 transition-all active:scale-95 group"
+                    onClick={handleGoogleLogin}
+                    disabled={isGoogleLoading}
+                    className="w-full bg-white dark:bg-slate-800 hover:scale-[1.02] p-5 rounded-[2rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl flex items-center gap-4 transition-all active:scale-95 group disabled:opacity-50"
                 >
                     <div className="w-14 h-14 bg-gradient-to-br from-red-400 to-orange-600 rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-red-200 dark:shadow-none">
-                        <svg className="w-6 h-6 group-hover:rotate-6 transition-transform" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                        </svg>
+                        {isGoogleLoading ? (
+                            <Loader2 size={26} className="animate-spin" />
+                        ) : (
+                            <svg className="w-6 h-6 group-hover:rotate-6 transition-transform" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                            </svg>
+                        )}
                     </div>
-                    <div className="text-center">
-                        <span className="text-xs font-black text-[var(--text-main)] block">{t('google_login')}</span>
-                        <span className="text-[8px] text-[var(--text-muted)] font-bold mt-0.5 block">{t('google_login_desc')}</span>
+                    <div className="text-left flex-1">
+                        <span className="text-sm font-black text-[var(--text-main)] block">{isGoogleLoading ? 'Yuklanmoqda...' : t('google_login')}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] font-bold">Gmail orqali tezkor kirish</span>
                     </div>
+                    <ChevronRight className="text-gray-300 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" size={20} />
                 </button>
 
                 {/* Guest */}
                 <button
                     onClick={onGuestLogin}
-                    className="bg-white dark:bg-slate-800 hover:scale-[1.02] p-5 rounded-[1.5rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl flex flex-col items-center gap-3 transition-all active:scale-95 group"
+                    className="w-full bg-white dark:bg-slate-800 hover:scale-[1.02] p-5 rounded-[2rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl flex items-center gap-4 transition-all active:scale-95 group"
                 >
-                    <div className="w-14 h-14 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-slate-500 mb-3 group-hover:scale-110 transition-transform">
+                    <div className="w-14 h-14 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-slate-500 group-hover:scale-110 transition-transform">
                         <Eye size={26} className="group-hover:rotate-6 transition-transform" />
                     </div>
-                    <div className="text-center">
-                        <span className="text-xs font-black text-[var(--text-main)] block">{t('guest_login')}</span>
-                        <span className="text-[8px] text-[var(--text-muted)] font-bold mt-0.5 block">{t('guest_login_desc')}</span>
+                    <div className="text-left flex-1">
+                        <span className="text-sm font-black text-[var(--text-main)] block">{t('guest_login')}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] font-bold">Ro'yxatdan o'tmasdan ko'rish</span>
                     </div>
+                    <ChevronRight className="text-gray-300 group-hover:text-slate-500 group-hover:translate-x-1 transition-all" size={20} />
                 </button>
             </div>
         </div>
@@ -209,7 +220,7 @@ export const BusinessTypeStep: React.FC<StepProps & { setBusinessType: (t: any) 
 
                 {/* Solo Entrepreneur */}
                 <button
-                    onClick={() => { setBusinessType('SOLO'); setSelectedRole?.(UserRole.COMPANY); onNavigate('BUSINESS_OTP'); }}
+                    onClick={() => { setBusinessType('SOLO'); setSelectedRole?.(UserRole.COMPANY); onNavigate('BUSINESS_AUTH_METHOD'); }}
                     className="w-full bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl hover:scale-[1.02] text-left transition-all flex items-center gap-5 group"
                 >
                     <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-amber-200 dark:shadow-none">
@@ -348,7 +359,7 @@ export const EmployeeInviteStep: React.FC<StepProps & { onVerifyCode: (code: str
     );
 };
 
-// OTP Verify Step with auto country code
+// OTP Verify Step with delivery method selection
 export const OtpVerifyStep: React.FC<StepProps & {
     phone: string,
     setPhone: (v: string) => void,
@@ -361,6 +372,9 @@ export const OtpVerifyStep: React.FC<StepProps & {
     isLoading?: boolean
 }> = ({ onBack, phone, setPhone, otp, setOtp, showOtp, onNext, onVerify, countryConfig, isLoading }) => {
     const { t } = useLanguage();
+    const [step, setStep] = React.useState<'phone' | 'method' | 'otp'>('phone');
+    const [deliveryMethod, setDeliveryMethod] = React.useState<'telegram' | 'sms' | null>(null);
+    const [isSending, setIsSending] = React.useState(false);
 
     const formatPhone = (value: string) => {
         const digits = value.replace(/\D/g, '').slice(0, countryConfig.length);
@@ -370,17 +384,51 @@ export const OtpVerifyStep: React.FC<StepProps & {
         return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 7)} ${digits.slice(7)}`;
     };
 
+    const handlePhoneSubmit = () => {
+        if (phone.replace(/\D/g, '').length >= countryConfig.length) {
+            setStep('method');
+        }
+    };
+
+    const handleSendViaTelegram = async () => {
+        setIsSending(true);
+        setDeliveryMethod('telegram');
+
+        // Open Telegram bot with phone number as start parameter
+        const fullPhone = countryConfig.code.replace('+', '') + phone;
+        const botUrl = `https://t.me/navbat_uzbot?start=otp_${fullPhone}`;
+        window.open(botUrl, '_blank');
+
+        // Wait a moment then proceed to OTP entry
+        setTimeout(() => {
+            setIsSending(false);
+            setStep('otp');
+            onNext();
+        }, 2000);
+    };
+
+    // Determine current view based on internal step OR parent's showOtp
+    const currentView = showOtp ? 'otp' : step;
+
     return (
         <div className="space-y-6 animate-slide-up">
-            <button onClick={onBack} className="text-[var(--text-muted)] hover:text-[var(--text-main)] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest group">
+            <button onClick={() => {
+                if (currentView === 'method') {
+                    setStep('phone');
+                } else if (currentView === 'otp') {
+                    setStep('method');
+                } else {
+                    onBack?.();
+                }
+            }} className="text-[var(--text-muted)] hover:text-[var(--text-main)] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest group">
                 <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> {t('back')}
             </button>
 
-            {!showOtp ? (
+            {currentView === 'phone' && (
                 <>
                     <div className="text-center space-y-2 mb-8">
                         <h3 className="font-black text-[var(--text-main)] text-2xl tracking-tight">{t('enter_phone')}</h3>
-                        <p className="text-[11px] text-[var(--text-muted)] font-bold">{t('otp_sent')}</p>
+                        <p className="text-[11px] text-[var(--text-muted)] font-bold">Telefon raqamingizni kiriting</p>
                     </div>
 
                     <div className="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-xl border border-[var(--border-main)]">
@@ -406,20 +454,83 @@ export const OtpVerifyStep: React.FC<StepProps & {
                         </div>
 
                         <button
-                            onClick={onNext}
-                            disabled={phone.replace(/\D/g, '').length < countryConfig.length || isLoading}
+                            onClick={handlePhoneSubmit}
+                            disabled={phone.replace(/\D/g, '').length < countryConfig.length}
                             className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-100 disabled:text-gray-400 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-emerald-200/50 dark:shadow-none active:scale-95 transition-all disabled:cursor-not-allowed flex items-center justify-center gap-3 disabled:shadow-none"
                         >
-                            {isLoading ? <Loader2 className="animate-spin" size={18} /> : t('get_code')}
+                            Davom etish <ArrowRight size={18} />
                         </button>
                     </div>
                 </>
-            ) : (
+            )}
+
+            {currentView === 'method' && (
                 <>
-                    <div className="text-center space-y-2 mb-8">
+                    <div className="text-center space-y-2 mb-6">
+                        <h3 className="font-black text-[var(--text-main)] text-2xl tracking-tight">Kod qayerga yuborilsin?</h3>
+                        <p className="text-[11px] text-[var(--text-muted)] font-bold">
+                            {countryConfig.code} {formatPhone(phone)}
+                        </p>
+                    </div>
+
+                    <div className="space-y-3">
+                        {/* Telegram - Primary, Active */}
+                        <button
+                            onClick={handleSendViaTelegram}
+                            disabled={isSending}
+                            className="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 p-5 rounded-[2rem] shadow-xl hover:shadow-2xl flex items-center gap-4 transition-all active:scale-95 group text-white disabled:opacity-70"
+                        >
+                            <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                {isSending ? (
+                                    <Loader2 size={26} className="animate-spin" />
+                                ) : (
+                                    <Send size={26} className="group-hover:rotate-6 transition-transform" />
+                                )}
+                            </div>
+                            <div className="text-left flex-1">
+                                <span className="text-sm font-black block">Telegram orqali</span>
+                                <span className="text-[10px] font-bold opacity-80">Tezkor va bepul • @navbat_uzbot</span>
+                            </div>
+                            <ChevronRight className="opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all" size={20} />
+                        </button>
+
+                        {/* SMS - Disabled, Coming Soon */}
+                        <button
+                            disabled
+                            className="w-full bg-gray-100 dark:bg-slate-800/50 p-5 rounded-[2rem] border border-gray-200 dark:border-slate-700 flex items-center gap-4 opacity-50 cursor-not-allowed"
+                        >
+                            <div className="w-14 h-14 bg-gray-200 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-gray-400">
+                                <Smartphone size={26} />
+                            </div>
+                            <div className="text-left flex-1">
+                                <span className="text-sm font-black text-gray-400 dark:text-gray-500 block">SMS orqali</span>
+                                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500">⏳ Tizim tez orada ishga tushadi</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* Info Box */}
+                    <div className="mt-4 p-4 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800 rounded-2xl">
+                        <p className="text-[10px] text-sky-700 dark:text-sky-300 font-bold text-center">
+                            💡 Telegram orqali kod olish bepul va tezkor. Bot sizga 5 xonali kod yuboradi.
+                        </p>
+                    </div>
+                </>
+            )}
+
+            {currentView === 'otp' && (
+                <>
+                    <div className="text-center space-y-2 mb-6">
                         <h3 className="font-black text-[var(--text-main)] text-2xl tracking-tight">{t('verification')}</h3>
                         <p className="text-[11px] text-[var(--text-muted)] font-bold">
-                            {countryConfig.code} {formatPhone(phone)} {t('code_sent_to')}
+                            {deliveryMethod === 'telegram' ? '@navbat_uzbot dan' : 'SMS orqali'} kelgan kodni kiriting
+                        </p>
+                    </div>
+
+                    {/* Demo Mode Notice */}
+                    <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl">
+                        <p className="text-[10px] text-amber-700 dark:text-amber-300 font-bold text-center">
+                            🧪 Demo rejim: Istalgan 5 ta raqamni kiriting (masalan: 12345)
                         </p>
                     </div>
 
@@ -454,8 +565,11 @@ export const OtpVerifyStep: React.FC<StepProps & {
                         </button>
 
                         <div className="flex items-center justify-center gap-3">
-                            <button className="text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
-                                {t('resend_code')}
+                            <button
+                                onClick={() => setStep('method')}
+                                className="text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
+                            >
+                                Boshqa usul tanlash
                             </button>
                         </div>
                     </div>
@@ -502,6 +616,97 @@ export const PasswordStep: React.FC<StepProps & { password: string, setPassword:
                 >
                     Kirish <ArrowRight size={18} />
                 </button>
+            </div>
+        </div>
+    );
+};
+
+// Business Auth Method Step - Phone, Google for Solo/Org Admin
+export const BusinessAuthMethodStep: React.FC<StepProps & {
+    onPhoneMethod: () => void;
+    businessType: 'SOLO' | 'CORPORATE';
+    countryCode: string;
+}> = ({ onNavigate, onBack, onPhoneMethod, businessType, countryCode }) => {
+    const { t } = useLanguage();
+    const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
+
+    const handleGoogleLogin = async () => {
+        setIsGoogleLoading(true);
+        try {
+            const { default: authService } = await import('../../services/authService');
+            await authService.loginWithGoogle();
+            // Success - AuthView listener will handle navigation
+        } catch (error: any) {
+            console.error("Google Login failed", error);
+            if (error.message !== 'Oyna yopildi' && error.message !== "So'rov bekor qilindi") {
+                alert(error.message || "Google orqali kirishda xatolik yuz berdi.");
+            }
+        } finally {
+            setIsGoogleLoading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-5 animate-slide-up">
+            <button onClick={onBack} className="text-[var(--text-muted)] hover:text-[var(--text-main)] flex items-center gap-2 text-[10px] font-black uppercase tracking-widest mb-2 group">
+                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> {t('back')}
+            </button>
+
+            <div className="text-center space-y-2 mb-6">
+                <h3 className="font-black text-[var(--text-main)] text-xl tracking-tight">
+                    {businessType === 'SOLO' ? 'Yakka tadbirkor' : 'Tashkilot admin'}
+                </h3>
+                <p className="text-[11px] text-[var(--text-muted)] font-bold">Kirish usulini tanlang</p>
+            </div>
+
+            {/* Login Methods */}
+            <div className="space-y-3">
+                {/* Phone - Primary */}
+                <button
+                    onClick={onPhoneMethod}
+                    className="w-full bg-white dark:bg-slate-800 hover:scale-[1.02] p-5 rounded-[2rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl flex items-center gap-4 transition-all active:scale-95 group"
+                >
+                    <div className="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-green-200 dark:shadow-none">
+                        <Smartphone size={26} className="group-hover:rotate-6 transition-transform" />
+                    </div>
+                    <div className="text-left flex-1">
+                        <span className="text-sm font-black text-[var(--text-main)] block">{t('phone_login')}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] font-bold">{countryCode} • Kod orqali kirish</span>
+                    </div>
+                    <ChevronRight className="text-gray-300 group-hover:text-green-500 group-hover:translate-x-1 transition-all" size={20} />
+                </button>
+
+                {/* Google */}
+                <button
+                    onClick={handleGoogleLogin}
+                    disabled={isGoogleLoading}
+                    className="w-full bg-white dark:bg-slate-800 hover:scale-[1.02] p-5 rounded-[2rem] border border-[var(--border-main)] shadow-xl hover:shadow-2xl flex items-center gap-4 transition-all active:scale-95 group disabled:opacity-50"
+                >
+                    <div className="w-14 h-14 bg-gradient-to-br from-red-400 to-orange-600 rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg shadow-red-200 dark:shadow-none">
+                        {isGoogleLoading ? (
+                            <Loader2 size={26} className="animate-spin" />
+                        ) : (
+                            <svg className="w-6 h-6 group-hover:rotate-6 transition-transform" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                            </svg>
+                        )}
+                    </div>
+                    <div className="text-left flex-1">
+                        <span className="text-sm font-black text-[var(--text-main)] block">{isGoogleLoading ? 'Yuklanmoqda...' : t('google_login')}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] font-bold">Gmail orqali tezkor kirish</span>
+                    </div>
+                    <ChevronRight className="text-gray-300 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" size={20} />
+                </button>
+            </div>
+
+            {/* Info */}
+            <div className="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl">
+                <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold text-center">
+                    💡 Telefon orqali kirishda Telegram kod olasiz - bepul va tezkor!
+                </p>
             </div>
         </div>
     );

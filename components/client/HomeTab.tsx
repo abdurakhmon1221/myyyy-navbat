@@ -119,7 +119,7 @@ const HomeTab: React.FC<HomeTabProps> = ({
                                     isFav={favorites.includes(org.id)}
                                     onToggleFavorite={toggleFavorite}
                                     onJoinQueue={handleJoinQueueRequest}
-                                    onStartDirection={(o) => window.open(`https://www.google.com/maps/dir/?api=1&destination=${o.location.lat},${o.location.lng}`)}
+                                    onStartDirection={(o) => o.location?.lat && o.location?.lng ? window.open(`https://www.google.com/maps/dir/?api=1&destination=${o.location.lat},${o.location.lng}`) : alert('Joylashuv mavjud emas')}
                                     t={t}
                                 />
                             </div>

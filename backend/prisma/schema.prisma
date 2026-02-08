@@ -13,6 +13,7 @@ model User {
   phone       String   @unique
   name        String?
   imageUrl    String?
+  telegramId  String?  @unique
   trustScore  Float    @default(36.5)
   role        String   @default("CLIENT") // CLIENT, ADMIN, COMPANY, EMPLOYEE
   otp         String?

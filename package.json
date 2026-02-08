@@ -13,12 +13,20 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run backend\""
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.2",
+    "@capacitor/cli": "^8.0.2",
+    "@capacitor/core": "^8.0.2",
+    "@capacitor/ios": "^8.0.2",
+    "@capacitor/push-notifications": "^8.0.0",
     "@types/leaflet": "^1.9.21",
     "@types/ws": "^8.18.1",
+    "axios": "^1.13.5",
     "better-sqlite3": "^12.6.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.4",
     "express": "^4.18.2",
+    "firebase": "^12.9.0",
+    "firebase-admin": "^13.6.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
@@ -32,6 +40,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@vercel/node": "^5.5.33",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.20",
     "concurrently": "^8.2.2",

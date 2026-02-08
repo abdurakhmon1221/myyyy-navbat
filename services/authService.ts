@@ -182,76 +182,53 @@ export const authService = {
      * Request OTP for phone number
      */
     async requestOtp(phone: string): Promise<OtpResponse> {
-        // In mock mode, simulate OTP
-        if (config.api.useMockApi) {
-            console.log(`[Auth] Mock OTP sent to ${phone}: 12345`);
-            await new Promise(resolve => setTimeout(resolve, config.api.mockLatencyMs));
-            return {
-                sent: true,
-                expiresIn: 120,
-                maskedPhone: phone.replace(/(.{3})(.*)(.{4})/, '$1 ** *** $3')
-            };
-        }
-
-        const response = await http.post<{ data: OtpResponse }>('/auth/request-otp', {
-            phone
-        }, { skipAuth: true });
-
-        return response.data.data;
+        // Always use mock mode - no real SMS backend yet
+        console.log(`[Auth] OTP sent to ${phone}: 12345 (yoki istalgan 5 raqam)`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return {
+            sent: true,
+            expiresIn: 120,
+            maskedPhone: phone.replace(/(.{3})(.*)(.{4})/, '$1 ** *** $3')
+        };
     },
 
     /**
      * Verify OTP and login
      */
     async verifyOtp(phone: string, otp: string): Promise<LoginResponse> {
-        // In mock mode, simulate login
-        if (config.api.useMockApi) {
-            await new Promise(resolve => setTimeout(resolve, config.api.mockLatencyMs));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-            if (otp !== '12345') {
-                const error: HttpError = {
-                    status: 401,
-                    message: 'Noto\'g\'ri kod kiritildi',
-                    code: ErrorCodes.UNAUTHORIZED
-                };
-                throw error;
-            }
-
-            const now = Date.now();
-            const session: AuthSession = {
-                user: {
-                    id: `U${phone.replace(/\D/g, '')}`,
-                    phone,
-                    name: 'Foydalanuvchi',
-                    trustScore: 36.5,
-                    role: 'CLIENT'
-                },
-                token: `mock_token_${now}`,
-                expiresAt: now + config.auth.sessionTimeoutMs,
-                issuedAt: now
+        // Accept any 5-digit code for demo
+        if (otp.length < 5) {
+            const error: HttpError = {
+                status: 401,
+                message: 'Kod 5 raqamdan iborat bo\'lishi kerak',
+                code: ErrorCodes.UNAUTHORIZED
             };
-
-            currentSession = session;
-            saveSession(session);
-            scheduleRefresh(session);
-            notifyListeners();
-
-            return { session, isNewUser: false };
+            throw error;
         }
 
-        const response = await http.post<{ data: LoginResponse }>('/auth/verify-otp', {
-            phone,
-            otp
-        }, { skipAuth: true });
-
-        const { session, isNewUser } = response.data.data;
+        const now = Date.now();
+        const session: AuthSession = {
+            user: {
+                id: `U${phone.replace(/\D/g, '')}`,
+                phone,
+                name: 'Foydalanuvchi',
+                trustScore: 36.5,
+                role: 'CLIENT'
+            },
+            token: `token_${now}`,
+            expiresAt: now + config.auth.sessionTimeoutMs,
+            issuedAt: now
+        };
 
         currentSession = session;
         saveSession(session);
         scheduleRefresh(session);
         notifyListeners();
 
-        return { session, isNewUser };
+        console.log('[Auth] Phone login successful:', phone);
+        return { session, isNewUser: false };
     },
 
     /**
@@ -324,6 +301,54 @@ export const authService = {
     logout(): void {
         clearSession();
         notifyListeners();
+    },
+
+    /**
+     * Login with Google using Firebase
+     */
+    async loginWithGoogle(): Promise<LoginResponse> {
+        try {
+            const { signInWithPopup } = await import('firebase/auth');
+            const { auth, googleProvider } = await import('./firebase');
+
+            const result = await signInWithPopup(auth, googleProvider);
+            const firebaseUser = result.user;
+            const token = await firebaseUser.getIdToken();
+
+            const now = Date.now();
+            const session: AuthSession = {
+                user: {
+                    id: firebaseUser.uid,
+                    phone: firebaseUser.phoneNumber || '+998000000000',
+                    name: firebaseUser.displayName || 'Google User',
+                    trustScore: 50,
+                    role: 'CLIENT'
+                },
+                token: token,
+                expiresAt: now + config.auth.sessionTimeoutMs,
+                issuedAt: now
+            };
+
+            currentSession = session;
+            saveSession(session);
+            scheduleRefresh(session);
+            notifyListeners();
+
+            console.log('[Auth] Google login successful:', firebaseUser.email);
+            return { session, isNewUser: true };
+        } catch (error: any) {
+            console.error('Google login error:', error);
+
+            // If popup was closed by user, don't show error
+            if (error.code === 'auth/popup-closed-by-user') {
+                throw new Error('Oyna yopildi');
+            }
+            if (error.code === 'auth/cancelled-popup-request') {
+                throw new Error('So\'rov bekor qilindi');
+            }
+
+            throw new Error(error.message || 'Google orqali kirishda xatolik');
+        }
     },
 
     /**

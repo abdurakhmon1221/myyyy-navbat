@@ -89,7 +89,7 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
                             <p className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-[0.15em]">Tugmani bosing</p>
                             {waitingCount > 0 && <p className="text-sm font-black text-emerald-600 animate-pulse">Navbatda: {waitingCount} mijoz kutmoqda</p>}
                         </div>
-                        <button onClick={() => handleCallNext()} disabled={waitingCount === 0 || isPaused || isEmergencyStopped} className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:to-teal-500 text-white font-black py-6 rounded-[2rem] shadow-xl shadow-emerald-200 dark:shadow-none active:scale-95 transition-all uppercase tracking-[0.2em] text-[11px] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed">Keyingisini chaqirish</button>
+                        <button onClick={() => handleCallNext()} disabled={waitingCount === 0 || isPaused || isEmergencyStopped} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-6 rounded-[2rem] shadow-xl shadow-emerald-200 dark:shadow-none active:scale-95 transition-all uppercase tracking-[0.2em] text-[11px] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed">Keyingisini chaqirish</button>
                         <button onClick={() => { setIsPaused(!isPaused); if (!isPaused) setBreakTimer(0); }} className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all ${isPaused ? 'bg-amber-100 text-amber-600' : 'text-gray-400 hover:text-amber-500'}`}>
                             <Coffee size={14} /> {isPaused ? `Tanaffusda: ${formatTime(breakTimer)}` : 'Tanaffusga chiqish'}
                         </button>

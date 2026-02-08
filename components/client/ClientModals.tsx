@@ -192,14 +192,21 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
                     <section>
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><List size={12} /> Xizmat turi</p>
                         <div className="space-y-2">
-                            {org.services.map(s => (
-                                <button key={s.id} onClick={() => setSelectedService(s)} className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${selectedService?.id === s.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-400' : 'border-gray-50 dark:border-slate-700 text-gray-600 dark:text-slate-300'}`}>
-                                    <div className="flex justify-between items-center">
-                                        <p className="font-bold text-sm">{s.name}</p>
-                                        <p className="text-[10px] font-black opacity-50">{org.estimatedServiceTime || 15} min</p>
-                                    </div>
-                                </button>
-                            ))}
+                            {org.services && org.services.length > 0 ? (
+                                org.services.map(s => (
+                                    <button key={s.id} onClick={() => setSelectedService(s)} className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${selectedService?.id === s.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-400' : 'border-gray-50 dark:border-slate-700 text-gray-600 dark:text-slate-300'}`}>
+                                        <div className="flex justify-between items-center">
+                                            <p className="font-bold text-sm">{s.name}</p>
+                                            <p className="text-[10px] font-black opacity-50">{org.estimatedServiceTime || 15} min</p>
+                                        </div>
+                                    </button>
+                                ))
+                            ) : (
+                                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-500">
+                                    <p className="font-bold text-sm text-emerald-700 dark:text-emerald-400">Standart xizmat</p>
+                                    <p className="text-[10px] text-gray-500">Taxminiy vaqt: {org.estimatedServiceTime || 15} min</p>
+                                </div>
+                            )}
                         </div>
                     </section>
 

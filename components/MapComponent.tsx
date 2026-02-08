@@ -17,6 +17,14 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
+// Custom User Location Icon (blue circle)
+const UserLocationIcon = L.divIcon({
+    html: `<div style="width: 20px; height: 20px; background: #3b82f6; border: 4px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(59,130,246,0.5);"></div>`,
+    className: 'user-location-marker',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+});
+
 interface MapComponentProps {
     organizations: Organization[];
     onSelectOrg: (org: Organization) => void;
@@ -50,18 +58,20 @@ const LocationControl = () => {
 
     return (
         <>
-            <div style={{ position: 'absolute', bottom: '80px', right: '20px', zIndex: 1000 }}>
+            <div style={{ position: 'absolute', top: '100px', right: '10px', zIndex: 1000 }}>
                 <button
                     onClick={handleLocate}
-                    className="bg-white p-3 rounded-full shadow-xl active:scale-95 transition-transform text-emerald-600 border border-emerald-100 flex items-center justify-center"
+                    className="bg-white p-3 rounded-full shadow-xl active:scale-95 transition-transform text-blue-600 border border-blue-100 flex items-center justify-center"
                     title="Mening joylashuvim"
                 >
-                    <Navigation size={24} className="fill-emerald-100" />
+                    <Navigation size={22} className="fill-blue-100" />
                 </button>
             </div>
             {position && (
-                <Marker position={position}>
-                    <Popup>Siz shu yerdasiz</Popup>
+                <Marker position={position} icon={UserLocationIcon}>
+                    <Popup>
+                        <strong style={{ color: '#3b82f6' }}>📍 Siz shu yerdasiz</strong>
+                    </Popup>
                 </Marker>
             )}
         </>
@@ -77,11 +87,11 @@ const MapComponent: React.FC<MapComponentProps> = ({ organizations, onSelectOrg,
                 style={{ height: '100%', width: '100%' }}
             >
                 <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; OpenStreetMap contributors'
                 />
 
-                {organizations.map(org => (
+                {organizations.filter(o => o.location?.lat && o.location?.lng).map(org => (
                     <Marker key={org.id} position={[org.location.lat, org.location.lng]}>
                         <Popup>
                             <strong>{org.name}</strong><br />

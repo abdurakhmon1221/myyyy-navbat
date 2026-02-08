@@ -44,22 +44,22 @@ const getApiConfig = (): ApiConfig => {
             baseUrl: envBaseUrl || '/api/v1',
             wsUrl: envWsUrl || (typeof window !== 'undefined' ? `ws://${window.location.host}/ws` : 'ws://localhost:3001/ws'),
             timeout: 30000,
-            useMockApi: envUseMock !== 'false', // Default to true in dev
+            useMockApi: true, // Always use mock - no real backend yet
             mockLatencyMs: 300
         },
         staging: {
             baseUrl: envBaseUrl || 'https://staging-api.navbat.uz/v1',
             wsUrl: envWsUrl || 'wss://staging-api.navbat.uz/ws',
             timeout: 15000,
-            useMockApi: false,
-            mockLatencyMs: 0
+            useMockApi: true, // Always use mock - no real backend yet
+            mockLatencyMs: 100
         },
         production: {
             baseUrl: envBaseUrl || 'https://api.navbat.uz/v1',
             wsUrl: envWsUrl || 'wss://api.navbat.uz/ws',
             timeout: 10000,
-            useMockApi: false,
-            mockLatencyMs: 0
+            useMockApi: true, // Always use mock - no real backend yet
+            mockLatencyMs: 100
         }
     };
 

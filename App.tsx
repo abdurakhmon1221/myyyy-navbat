@@ -13,6 +13,8 @@ import {
   UserSquare2, Users, Building2, ChevronLeft, ChevronRight, QrCode, X, MessageSquare, MapPin, Send
 } from 'lucide-react';
 import { db } from './services/LocalStorageDB';
+import { useOrganizations } from './hooks/useOrganizations';
+import { usePushNotifications } from './hooks/usePushNotifications';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { webSocketService } from './services/webSocketService';
@@ -66,6 +68,9 @@ const App: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize Push Notifications
+  usePushNotifications(isAuthenticated, userProfile.phone);
 
   useEffect(() => {
     const detectLocation = async () => {
@@ -205,11 +210,11 @@ const App: React.FC = () => {
   // These handlers are now simplified and called from AuthView
 
   // Org State
-  const orgs = db.getOrganizations();
+  const { organizations, updateOrganization } = useOrganizations();
   const [fetchedOrg, setFetchedOrg] = useState<Organization | null>(null);
 
   // Try to find org locally, or use fetched org
-  const currentOrg = orgs.find(o => o.id === orgId) || fetchedOrg || (orgs.length > 0 ? orgs[0] : null);
+  const currentOrg = organizations.find(o => o.id === orgId) || fetchedOrg || (organizations.length > 0 ? organizations[0] : null);
 
   // Fetch org if missing locally but we have an ID
   useEffect(() => {
@@ -226,7 +231,7 @@ const App: React.FC = () => {
       };
       loadOrg();
     }
-  }, [role, currentOrg, orgId]);
+  }, [role, currentOrg, orgId, organizations]);
 
   if (isLoading) return <div className="min-h-screen bg-emerald-600 flex items-center justify-center"><Loader2 className="animate-spin text-white" size={48} /></div>;
 
@@ -272,7 +277,7 @@ const App: React.FC = () => {
               // Ensure we have an organization before rendering
               currentOrg ? (
                 businessType === 'SOLO' ?
-                  <SoloView organization={currentOrg} profile={userProfile} onUpdateProfile={updateProfile} onLogout={handleLogout} activeTab={activeTab} /> :
+                  <SoloView organization={currentOrg} profile={userProfile} onUpdateProfile={updateProfile} onUpdateOrganization={updateOrganization} onLogout={handleLogout} activeTab={activeTab} /> :
                   <OrgView role={role} onLogout={handleLogout} profile={userProfile} onUpdateProfile={updateProfile} activeTab={activeTab} setActiveTab={setActiveTab} />
               ) : (
                 <div className="flex flex-col items-center justify-center h-[60vh] text-center p-6 bg-gray-50 dark:bg-slate-900 rounded-3xl m-4">

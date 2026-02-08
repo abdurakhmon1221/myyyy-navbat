@@ -5,7 +5,7 @@ import {
     Clock, Users, Star, DollarSign, Heart, Mic, MicOff,
     PauseCircle, PlayCircle, Coffee, CheckCircle2, Volume2,
     Wallet, Package, Megaphone, Scissors, Calendar, TrendingUp,
-    PieChart, MessageSquare, Award, Target, Zap
+    PieChart, MessageSquare, Award, Target, Zap, ChevronLeft
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { haptics } from '../services/haptics';
@@ -19,6 +19,7 @@ import { useSoloState } from '../hooks/useSoloState';
 // Components
 import SoloHeader from '../components/solo/SoloHeader';
 import ProfilePage from '../components/shared/ProfilePage';
+import OrgSettings from '../components/org/OrgSettings';
 import { SoloQRModal, SoloSettingsModal } from '../components/solo/SoloModals';
 import LazyLoading from '../components/shared/LazyLoading';
 
@@ -34,11 +35,12 @@ interface SoloViewProps {
     organization: Organization;
     profile: any;
     onUpdateProfile: (data: any) => void;
+    onUpdateOrganization?: (org: Organization) => Promise<void>;
     onLogout?: () => void;
     activeTab: string;
 }
 
-const SoloView: React.FC<SoloViewProps> = ({ organization, profile, onUpdateProfile, onLogout, activeTab }) => {
+const SoloView: React.FC<SoloViewProps> = ({ organization, profile, onUpdateProfile, onUpdateOrganization, onLogout, activeTab }) => {
     const { language, t } = useLanguage();
     const { activeQueues, updateQueueStatus } = useQueue(profile.phone);
     const { modals, openModal, closeModal } = useModal([
@@ -56,6 +58,7 @@ const SoloView: React.FC<SoloViewProps> = ({ organization, profile, onUpdateProf
     const [waitingCount, setWaitingCount] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
     const [analyticsTab, setAnalyticsTab] = useState<'STATS' | 'FINANCE' | 'REVIEWS'>('STATS');
+    const [showOrgSettings, setShowOrgSettings] = useState(false);
 
     // Stats - Set to 0 for initial state
     const [stats] = useState({
@@ -401,9 +404,40 @@ const SoloView: React.FC<SoloViewProps> = ({ organization, profile, onUpdateProf
     );
 
     // ==================== TAB 4: PROFIL ====================
+    // ==================== TAB 4: PROFIL ====================
     const renderProfileTab = () => (
         <div className="animate-in fade-in duration-500">
-            <ProfilePage profile={profile} onUpdateProfile={onUpdateProfile} onLogout={onLogout} role="SOLO" />
+            {showOrgSettings && onUpdateOrganization ? (
+                <div className="space-y-4">
+                    <button
+                        onClick={() => { haptics.light(); setShowOrgSettings(false); }}
+                        className="flex items-center gap-2 text-emerald-600 font-bold px-2 py-2 hover:bg-emerald-50 rounded-xl transition-colors"
+                    >
+                        <ChevronLeft size={20} /> Orqaga
+                    </button>
+                    <OrgSettings
+                        organization={organization}
+                        onSaveOrganization={async (updatedOrg) => {
+                            await onUpdateOrganization(updatedOrg);
+                            onUpdateProfile({
+                                ...profile,
+                                name: updatedOrg.name,
+                                address: updatedOrg.address,
+                                imageUrl: updatedOrg.image || updatedOrg.imageUrl
+                            });
+                        }}
+                    />
+                </div>
+            ) : (
+                <ProfilePage
+                    profile={profile}
+                    onUpdateProfile={onUpdateProfile}
+                    onLogout={onLogout}
+                    role="SOLO"
+                    organization={organization}
+                    onOpenBusinessSettings={() => setShowOrgSettings(true)}
+                />
+            )}
         </div>
     );
 

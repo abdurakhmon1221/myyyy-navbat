@@ -11,8 +11,9 @@ import OrgAnalytics from '../components/org/OrgAnalytics';
 import OrgEmployees from '../components/org/OrgEmployees';
 import OrgServices from '../components/org/OrgServices';
 import OrgQueueJournal from '../components/org/OrgQueueJournal';
+import OrgSettings from '../components/org/OrgSettings';
 import { BroadcastModal, AuditLogsModal, TVModeOverlay } from '../components/org/OrgModals';
-import { QrCode, Download } from 'lucide-react';
+import { QrCode, Download, ChevronLeft } from 'lucide-react';
 import ProfilePage from '../components/shared/ProfilePage';
 import LazyLoading from '../components/shared/LazyLoading';
 import { SoloQRModal } from '../components/solo/SoloModals';
@@ -78,6 +79,7 @@ const OrgView: React.FC<OrgViewProps> = ({ role, onLogout, profile, onUpdateProf
   const [editName, setEditName] = useState(profile.name || '');
   const [editAddress, setEditAddress] = useState(profile.address || '');
   const [editImage, setEditImage] = useState(profile.imageUrl || '');
+  const [showOrgSettings, setShowOrgSettings] = useState(false);
 
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState('');
@@ -147,12 +149,40 @@ const OrgView: React.FC<OrgViewProps> = ({ role, onLogout, profile, onUpdateProf
         />
       )}
       {activeTab === 'SETTINGS' && (
-        <ProfilePage
-          profile={profile}
-          onUpdateProfile={onUpdateProfile}
-          onLogout={onLogout}
-          role="ORGANIZATION"
-        />
+        <div className="animate-in fade-in duration-500">
+          {showOrgSettings ? (
+            <div className="space-y-4">
+              <button
+                onClick={() => { haptics.light(); setShowOrgSettings(false); }}
+                className="flex items-center gap-2 text-emerald-600 font-bold mb-4 px-2 py-2 hover:bg-emerald-50 rounded-xl transition-colors"
+              >
+                <ChevronLeft size={20} /> Orqaga
+              </button>
+              <OrgSettings
+                organization={org}
+                onSaveOrganization={async (updatedOrg) => {
+                  setOrg(updatedOrg);
+                  await updateOrganization(updatedOrg);
+                  onUpdateProfile({
+                    ...profile,
+                    name: updatedOrg.name,
+                    address: updatedOrg.address,
+                    imageUrl: updatedOrg.image || updatedOrg.imageUrl
+                  });
+                }}
+              />
+            </div>
+          ) : (
+            <ProfilePage
+              profile={profile}
+              onUpdateProfile={onUpdateProfile}
+              onLogout={onLogout}
+              role={role}
+              organization={org}
+              onOpenBusinessSettings={() => setShowOrgSettings(true)}
+            />
+          )}
+        </div>
       )}
 
       {activeTab === 'QR' && (

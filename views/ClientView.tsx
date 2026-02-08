@@ -265,8 +265,17 @@ const ClientView: React.FC<ClientViewProps> = ({ activeTab, setActiveTab, isGues
       return;
     }
 
-    // Use the new API method
-    const serviceId = selectedService?.id || org.services[0].id;
+    // Handle case where org has no services defined
+    let serviceId = selectedService?.id;
+    if (!serviceId) {
+      if (org.services && org.services.length > 0) {
+        serviceId = org.services[0].id;
+      } else {
+        // Default service if none defined
+        serviceId = 'default';
+      }
+    }
+
     const result = await joinQueue(org.id, serviceId);
 
     if (result) {

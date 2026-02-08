@@ -8,7 +8,7 @@ import { LanguageProvider, useLanguage } from '../contexts/LanguageContext';
 
 // Extracted Components
 const ScannerModal = React.lazy(() => import('../components/auth/ScannerModal'));
-import { EntryStep, BusinessTypeStep, CorpRoleStep, ClientMethodStep, PasswordStep, OtpVerifyStep, EmployeeInviteStep } from '../components/auth/AuthSteps';
+import { EntryStep, BusinessTypeStep, CorpRoleStep, ClientMethodStep, PasswordStep, OtpVerifyStep, EmployeeInviteStep, BusinessAuthMethodStep } from '../components/auth/AuthSteps';
 import LandingPage from '../components/marketing/LandingPage';
 import { Suspense } from 'react';
 
@@ -21,7 +21,7 @@ interface AuthViewProps {
     countryConfig: any;
 }
 
-type AuthStep = 'LANDING' | 'ENTRY' | 'BUSINESS_TYPE' | 'CORP_ROLE' | 'CLIENT_METHOD' | 'OTP_VERIFY' | 'PASSWORD_ENTRY' | 'SYSTEM_ADMIN' | 'BUSINESS_OTP' | 'EMPLOYEE_INVITE';
+type AuthStep = 'LANDING' | 'ENTRY' | 'BUSINESS_TYPE' | 'CORP_ROLE' | 'CLIENT_METHOD' | 'OTP_VERIFY' | 'PASSWORD_ENTRY' | 'SYSTEM_ADMIN' | 'BUSINESS_OTP' | 'EMPLOYEE_INVITE' | 'BUSINESS_AUTH_METHOD';
 
 const AuthViewContent: React.FC<AuthViewProps> = ({
     onLogin,
@@ -309,6 +309,14 @@ const AuthViewContent: React.FC<AuthViewProps> = ({
                 />;
             case 'SYSTEM_ADMIN':
                 return <PasswordStep onBack={() => navigateTo('ENTRY')} password={password} setPassword={setPassword} onLogin={() => { if (password === 'admin777') onLogin(UserRole.ADMIN); else setError(t('error_wrong_password')); }} title={t('system_root')} />;
+            case 'BUSINESS_AUTH_METHOD':
+                return <BusinessAuthMethodStep
+                    onNavigate={navigateTo}
+                    onBack={() => navigateTo('BUSINESS_TYPE')}
+                    onPhoneMethod={() => navigateTo('BUSINESS_OTP')}
+                    businessType={businessType}
+                    countryCode={`${countryConfig.flag} ${countryConfig.code}`}
+                />;
             default:
                 return null;
         }

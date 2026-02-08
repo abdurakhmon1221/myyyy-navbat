@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "254710962683",
+    "project_id": "my-navbat",
+    "storage_bucket": "my-navbat.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:254710962683:android:1da42c8f4b19afe65d135e",
+        "android_client_info": {
+          "package_name": "mynavbat.uz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "254710962683-o4n8u0ml92pcovbat8qmq1dpgafs4tuk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-vB5z-D26YPsV7ejf-SLgheyxk5cPSgc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "254710962683-o4n8u0ml92pcovbat8qmq1dpgafs4tuk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
