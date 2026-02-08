@@ -1,16 +1,16 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Organization, Employee, QueueItem } from '../types';
 import { announceTicketCall } from '../services/voiceService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { haptics } from '../services/haptics';
+import api from '../services/api';
+import { useQueueSubscription } from '../hooks/useQueueSubscription';
 
 // Extracted Components
 import EmployeeDashboard from '../components/employee/EmployeeDashboard';
-import { SkipModal, TransferModal, SummaryModal } from '../components/employee/EmployeeModals';
-import { User, Camera, X } from 'lucide-react';
+import { SkipModal, TransferModal, SummaryModal, GuideModal } from '../components/employee/EmployeeModals';
+import { SoloQRModal } from '../components/solo/SoloModals';
 import ProfilePage from '../components/shared/ProfilePage';
-
 
 interface EmployeeViewProps {
   organization: Organization;
@@ -23,7 +23,10 @@ interface EmployeeViewProps {
 
 const EmployeeView: React.FC<EmployeeViewProps> = ({ organization, employee, onLogout, profile, onUpdateProfile, activeTab }) => {
   const { language } = useLanguage();
+  const { queue, forceRefresh } = useQueueSubscription(organization.id);
+
   const [servingTicket, setServingTicket] = useState<QueueItem | null>(null);
+  const [activeQueue, setActiveQueue] = useState<QueueItem[]>([]);
   const [waitingCount, setWaitingCount] = useState(0);
   const [serviceTimer, setServiceTimer] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -43,6 +46,19 @@ const EmployeeView: React.FC<EmployeeViewProps> = ({ organization, employee, onL
 
   const [dailyStats] = useState({ served: 24, avgTime: '12m', rating: 4.9, target: 50 });
 
+  const [loading, setLoading] = useState(false);
+
+  // Sync with subscription
+  useEffect(() => {
+    setWaitingCount(queue.filter(q => q.status === 'WAITING').length);
+    setNextClient(queue.find(q => q.status === 'WAITING') || null);
+    // Also check if I am serving a ticket? 
+    // Usually serving ticket is local state, but backend might say I am serving X.
+    // For now stick to local unless refreshed.
+  }, [queue]);
+
+  const refreshQueue = forceRefresh; // Alias for compatibility
+
   useEffect(() => {
     let timer: any;
     if (servingTicket && !isPaused) {
@@ -53,65 +69,62 @@ const EmployeeView: React.FC<EmployeeViewProps> = ({ organization, employee, onL
     return () => clearInterval(timer);
   }, [servingTicket, isPaused]);
 
-  useEffect(() => {
-    const checkQueues = () => {
-      const saved = localStorage.getItem('navbat_active_queues');
-      if (saved) {
-        const queues: QueueItem[] = JSON.parse(saved);
-        const filtered = queues.filter(q => q.organizationId === organization.id && q.status === 'WAITING');
-        setWaitingCount(filtered.length);
-        setNextClient(filtered[0] || null);
-      }
-    };
-    checkQueues();
-    const interval = setInterval(checkQueues, 5000);
-    return () => clearInterval(interval);
-  }, [organization.id]);
-
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const handleCallNext = () => {
-    if (isEmergencyStopped) return;
-    const saved = localStorage.getItem('navbat_active_queues');
-    if (saved) {
-      const queues: QueueItem[] = JSON.parse(saved);
-      const nextIndex = queues.findIndex(q => q.organizationId === organization.id && q.status === 'WAITING');
-      if (nextIndex !== -1) {
-        const next = queues[nextIndex];
-        next.status = 'CALLED';
-        setServingTicket(next);
-        localStorage.setItem('navbat_active_queues', JSON.stringify(queues));
-        announceTicketCall(next.number, 4, language);
+  const handleCallNext = async () => {
+    if (isEmergencyStopped || !nextClient) return;
+
+    setLoading(true);
+    try {
+      const res = await api.queues.updateStatus(nextClient.id, 'CALLED', employee.id);
+      if (res.success) {
+        setServingTicket(res.data);
+        announceTicketCall(res.data.number, 1, language); // Defaulting to window 1 for now
         haptics.heavy();
+        refreshQueue();
       }
+    } catch (e) {
+      console.error("Failed to call next", e);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!servingTicket) return;
+
     haptics.success();
-    const saved = localStorage.getItem('navbat_active_queues');
-    if (saved) {
-      const queues: QueueItem[] = JSON.parse(saved);
-      const filtered = queues.filter(q => q.id !== servingTicket.id);
-      localStorage.setItem('navbat_active_queues', JSON.stringify(filtered));
+    try {
+      await api.queues.updateStatus(servingTicket.id, 'SERVED', employee.id);
+      setServingTicket(null);
+      setServiceTimer(0);
+      refreshQueue();
+    } catch (e) {
+      console.error("Failed to finish", e);
     }
-    setServingTicket(null);
-    setServiceTimer(0);
   };
 
-  const handleSkip = (reason: string) => {
+  const handleSkip = async (reason: string) => {
     if (!servingTicket) return;
-    handleFinish();
-    setShowSkipModal(false);
+    try {
+      // Assuming 'SKIPPED' status exists or we use cancel/update
+      await api.queues.updateStatus(servingTicket.id, 'SKIPPED', employee.id);
+      setServingTicket(null);
+      setServiceTimer(0);
+      setShowSkipModal(false);
+      refreshQueue();
+    } catch (e) {
+      console.error("Failed to skip", e);
+    }
   };
 
   const handleTransfer = (target: string) => {
     if (!servingTicket) return;
+    // For now just finish, as transfer logic mimics finish in local version
     handleFinish();
     setShowTransferModal(false);
   };
@@ -147,6 +160,10 @@ const EmployeeView: React.FC<EmployeeViewProps> = ({ organization, employee, onL
       <SkipModal show={showSkipModal} onClose={() => setShowSkipModal(false)} onSkip={handleSkip} />
       <TransferModal show={showTransferModal} onClose={() => setShowTransferModal(false)} onTransfer={handleTransfer} />
       <SummaryModal show={showSummaryModal} onClose={() => setShowSummaryModal(false)} dailyStats={dailyStats} />
+
+      {/* New Modals */}
+      <SoloQRModal show={showQRModal} onClose={() => setShowQRModal(false)} organization={organization} />
+      <GuideModal show={showKBModal} onClose={() => setShowKBModal(false)} />
     </div>
   );
 };

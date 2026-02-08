@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// User Model
+model User {
+  id          String   @id @default(uuid())
+  phone       String   @unique
+  name        String?
+  imageUrl    String?
+  trustScore  Float    @default(36.5)
+  role        String   @default("CLIENT") // CLIENT, ADMIN, COMPANY, EMPLOYEE
+  otp         String?
+  otpExpiresAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  ownedOrganizations Organization[] @relation("Owner")
+  employeeProfile    Employee?
+  queues             Queue[]
+  invites            Invite[]
+}
+
+// Organization Model
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  address     String?
+  phone       String?
+  category    String   @default("Other")
+  status      String   @default("OPEN")
+  logo        String?
+  
+  description String?
+  
+  ownerId     String
+  owner       User     @relation("Owner", fields: [ownerId], references: [id])
+  
+  // Config
+  lat         Float?
+  lng         Float?
+  estimatedServiceTime Int @default(15)
+  workingHours String? // JSON string
+  busyHours    String? // JSON string
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  services    Service[]
+  employees   Employee[]
+  queues      Queue[]
+  invites     Invite[]
+}
+
+// Service Model
+model Service {
+  id             String   @id @default(uuid())
+  name           String
+  description    String?
+  price          Float?
+  duration       Int      @default(15)
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  employees      Employee[] // Many-to-many via implicit table or custom if needed
+  queues         Queue[]
+}
+
+// Employee Model
+model Employee {
+  id             String   @id @default(uuid())
+  userId         String?  @unique // Link to real user when registered
+  name           String   // Display name (can differ from User name)
+  phone          String
+  status         String   @default("ACTIVE") // ACTIVE, BUSY, PAUSED, OFFLINE
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  services       Service[]
+  queuesServed   Queue[]  @relation("ServedBy")
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  user           User?    @relation(fields: [userId], references: [id])
+}
+
+// Queue / Ticket Model
+model Queue {
+  id             String   @id @default(uuid())
+  number         Int
+  status         String   @default("WAITING") // WAITING, CALLED, SERVED, CANCELLED, SKIPPED
+  
+  userPhone      String
+  userName       String?
+  
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id])
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  serviceId      String?
+  service        Service? @relation(fields: [serviceId], references: [id])
+  
+  servedById     String?
+  servedBy       Employee? @relation("ServedBy", fields: [servedById], references: [id])
+  
+  ticketCode     String?  // Optional unique code
+  
+  entryTime      DateTime @default(now())
+  callTime       DateTime?
+  serveTime      DateTime?
+  completeTime   DateTime?
+  
+  waitingTime    Int?     // Calculated in minutes
+  serviceDuration Int?    // Actual service duration in minutes
+}
+
+// Employee Invite Model
+model Invite {
+  id             String   @id @default(uuid())
+  phone          String
+  role           String   @default("EMPLOYEE")
+  code           String
+  tempPassword   String?
+  expiresAt      DateTime
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  inviterId      String
+  inviter        User     @relation(fields: [inviterId], references: [id])
+  
+  status         String   @default("PENDING") // PENDING, ACCEPTED, EXPIRED
+}

@@ -1,0 +1,30 @@
+{
+    "appId": "com.navbat.app",
+    "appName": "Navbat",
+    "webDir": "dist",
+    "server": {
+        "androidScheme": "https"
+    },
+    "plugins": {
+        "SplashScreen": {
+            "launchShowDuration": 2000,
+            "backgroundColor": "#0f172a",
+            "showSpinner": false
+        },
+        "StatusBar": {
+            "style": "Dark",
+            "backgroundColor": "#0f172a"
+        },
+        "Keyboard": {
+            "resize": "body",
+            "style": "dark"
+        }
+    },
+    "ios": {
+        "contentInset": "automatic",
+        "backgroundColor": "#0f172a"
+    },
+    "android": {
+        "backgroundColor": "#0f172a"
+    }
+}

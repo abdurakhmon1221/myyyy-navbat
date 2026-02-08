@@ -6,6 +6,16 @@ import {
 const SmartCRM: React.FC = () => {
     // CRM State
     const [crmActiveTab, setCrmActiveTab] = useState<'CAMPAIGNS' | 'REVIEWS'>('CAMPAIGNS');
+    const [campaigns, setCampaigns] = useState({
+        winBack: true,
+        referral: false
+    });
+
+    const toggleCampaign = (camp: 'winBack' | 'referral') => {
+        const newState = !campaigns[camp];
+        setCampaigns(prev => ({ ...prev, [camp]: newState }));
+        alert(`${camp === 'winBack' ? 'Win-Back' : 'Referral'} kampaniyasi ${newState ? 'faollashtirildi' : 'to\'xtatildi'}!`);
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in max-w-6xl mx-auto pb-24">
@@ -32,7 +42,7 @@ const SmartCRM: React.FC = () => {
 
             {crmActiveTab === 'CAMPAIGNS' && (
                 <div className="grid grid-cols-2 gap-6">
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+                    <div className={`bg-white p-8 rounded-[2.5rem] border transition-all shadow-sm relative overflow-hidden group ${campaigns.winBack ? 'border-emerald-200 shadow-emerald-100' : 'border-gray-100'}`}>
                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100%] z-0"></div>
                         <div className="relative z-10">
                             <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
@@ -46,18 +56,23 @@ const SmartCRM: React.FC = () => {
                             </div>
 
                             <div className="mt-8 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-10 h-6 bg-emerald-500 rounded-full p-1 cursor-pointer">
-                                        <div className="w-4 h-4 bg-white rounded-full ml-auto shadow-sm"></div>
+                                <div
+                                    onClick={() => toggleCampaign('winBack')}
+                                    className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                                >
+                                    <div className={`w-10 h-6 rounded-full p-1 transition-colors ${campaigns.winBack ? 'bg-emerald-500' : 'bg-gray-200'}`}>
+                                        <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${campaigns.winBack ? 'ml-auto' : ''}`}></div>
                                     </div>
-                                    <span className="text-xs font-black text-emerald-600 uppercase">Faol</span>
+                                    <span className={`text-xs font-black uppercase ${campaigns.winBack ? 'text-emerald-600' : 'text-gray-400'}`}>
+                                        {campaigns.winBack ? 'Faol' : 'O\'chirilgan'}
+                                    </span>
                                 </div>
                                 <span className="text-[10px] font-bold text-gray-400 uppercase">3402 ta SMS yuborildi</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+                    <div className={`bg-white p-8 rounded-[2.5rem] border transition-all shadow-sm relative overflow-hidden group ${campaigns.referral ? 'border-indigo-200 shadow-indigo-100' : 'border-gray-100'}`}>
                         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-[100%] z-0"></div>
                         <div className="relative z-10">
                             <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 mb-6">
@@ -71,13 +86,18 @@ const SmartCRM: React.FC = () => {
                             </div>
 
                             <div className="mt-8 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-10 h-6 bg-gray-200 rounded-full p-1 cursor-pointer">
-                                        <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                <div
+                                    onClick={() => toggleCampaign('referral')}
+                                    className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                                >
+                                    <div className={`w-10 h-6 rounded-full p-1 transition-colors ${campaigns.referral ? 'bg-indigo-500' : 'bg-gray-200'}`}>
+                                        <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${campaigns.referral ? 'ml-auto' : ''}`}></div>
                                     </div>
-                                    <span className="text-xs font-black text-gray-400 uppercase">O'chirilgan</span>
+                                    <span className={`text-xs font-black uppercase ${campaigns.referral ? 'text-indigo-600' : 'text-gray-400'}`}>
+                                        {campaigns.referral ? 'Faol' : 'O\'chirilgan'}
+                                    </span>
                                 </div>
-                                <span className="text-[10px] font-bold text-gray-400 uppercase">Tez kunda</span>
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Beta versiya</span>
                             </div>
                         </div>
                     </div>
@@ -103,7 +123,7 @@ const SmartCRM: React.FC = () => {
                         </div>
                     </div>
 
-                    <button className="mt-8 bg-gray-900 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-wider hover:scale-105 transition-transform shadow-xl">
+                    <button onClick={() => alert("Sozlamalar saqlandi!")} className="mt-8 bg-gray-900 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-wider hover:scale-105 transition-transform shadow-xl">
                         Sozlamalarni O'zgartirish
                     </button>
                 </div>

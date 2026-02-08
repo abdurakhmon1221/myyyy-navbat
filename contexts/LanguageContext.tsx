@@ -120,6 +120,10 @@ const TRANSLATIONS: Translations = {
     'filter_popular': { uz: 'Ommabop', ru: 'Популярные', en: 'Popular' },
     'search_results': { uz: 'Qidiruv natijalari', ru: 'Результаты поиска', en: 'Search results' },
     'recommendations': { uz: 'Siz uchun tavsiyalar', ru: 'Рекомендации для вас', en: 'Recommendations for you' },
+    'live_map': { uz: 'Jonli xarita', ru: 'Живая карта', en: 'Live Map' },
+    'found_orgs': { uz: 'Yaqiningizdagi muassasalar', ru: 'Организации рядом', en: 'Organizations nearby' },
+    'join_queue_map': { uz: 'Navbat olish', ru: 'Встать в очередь', en: 'Join Queue' },
+    'error_joining_queue': { uz: 'Navbatga yozilishda xatolik yuz berdi.', ru: 'Ошибка при записи в очередь.', en: 'Error joining queue.' },
 
     // Status
     'status_active': { uz: 'Faol', ru: 'Активный', en: 'Active' },
@@ -174,6 +178,8 @@ const TRANSLATIONS: Translations = {
     'security': { uz: 'Xavfsizlik', ru: 'Безопасность', en: 'Security' },
     'support_info': { uz: 'Yordam va ma\'lumot', ru: 'Помощь и информация', en: 'Support & Info' },
     'notifications': { uz: 'Bildirishnomalar', ru: 'Уведомления', en: 'Notifications' },
+    'connect': { uz: 'Ulash', ru: 'Подключить', en: 'Connect' },
+    'connected': { uz: 'Ulangan', ru: 'Подключено', en: 'Connected' },
     'dark_mode': { uz: 'Tungi rejim', ru: 'Темная тема', en: 'Dark Mode' },
     'language': { uz: 'Til', ru: 'Язык', en: 'Language' },
     'help_center': { uz: 'Yordam markazi', ru: 'Центр помощи', en: 'Help Center' },
@@ -188,6 +194,19 @@ const TRANSLATIONS: Translations = {
     'name_placeholder': { uz: 'To\'liq ism', ru: 'Полное имя', en: 'Full Name' },
     'phone_placeholder': { uz: 'Telefon', ru: 'Телефон', en: 'Phone' },
     'address_placeholder': { uz: 'Manzil / Muassasa nomi', ru: 'Адрес / Название организации', en: 'Address / Org Name' },
+
+    // Categories
+    'categories': { uz: 'Kategoriyalar', ru: 'Категории', en: 'Categories' },
+    'cat_gov': { uz: 'Davlat xizmatlari', ru: 'Гос. услуги', en: 'Gov. Services' },
+    'cat_medical': { uz: 'Tibbiyot', ru: 'Медицина', en: 'Health' },
+    'cat_finance': { uz: 'Bank va moliya', ru: 'Банк и Финансы', en: 'Banking' },
+    'cat_transport': { uz: 'Transport va avto', ru: 'Транспорт', en: 'Transport' },
+    'cat_education': { uz: 'Ta’lim', ru: 'Образование', en: 'Education' },
+    'cat_utility': { uz: 'Kommunal xizmatlar', ru: 'Коммунальные', en: 'Utilities' },
+    'cat_real_estate': { uz: 'Uy-joy va kadastr', ru: 'Недвижимость', en: 'Real Estate' },
+    'cat_private': { uz: 'Xususiy xizmatlar', ru: 'Частные услуги', en: 'Private Services' },
+    'cat_other': { uz: 'Boshqalar', ru: 'Другое', en: 'Others' },
+    'recently_visited': { uz: 'Oxirgi ko\'rilgan', ru: 'Недавно', en: 'Recently visited' },
 };
 
 

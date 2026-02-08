@@ -1,102 +1,277 @@
+
 import React, { useState } from 'react';
-import {
-    HardDrive, Save, Activity, Cpu
-} from 'lucide-react';
+import { Save, Lock, Bell, Globe, Database, Mail, Shield } from 'lucide-react';
 
 const SystemSettings: React.FC = () => {
-    // Settings State
-    const [settingsTab, setSettingsTab] = useState<'GENERAL' | 'BACKUP' | 'HEALTH'>('GENERAL');
+    const [activeTab, setActiveTab] = useState<'GENERAL' | 'SECURITY' | 'NOTIFICATIONS' | 'API'>('GENERAL');
+    const [settings, setSettings] = useState({
+        platformName: 'Navbat.pro',
+        language: "O'zbekcha",
+        timezone: 'Asia/Tashkent (GMT+5)',
+        maintenance: false,
+        minPasswordLength: 8,
+        enable2FA: true,
+        deviceCheck: true,
+        publicApiKey: 'pk_live_51Msz...234sfd',
+        webhookUrl: '',
+        // Notification settings
+        pushEnabled: true,
+        smsEnabled: true,
+        emailEnabled: false,
+        voiceEnabled: true
+    });
+
+    const handleSave = () => {
+        // In a real app, this would make an API call
+        console.log('Saving settings:', settings);
+        // Simulate success
+        const btn = document.getElementById('save-btn');
+        if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="flex items-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Saqlandi</span>`;
+            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            }, 2000);
+        }
+        alert("Sozlamalar muvaffaqiyatli saqlandi!");
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in max-w-5xl mx-auto pb-24">
-            <header className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Tizim Sozlamalari</h1>
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wide">Reliability & Configuration</p>
-                </div>
-                <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
-                    <button
-                        onClick={() => setSettingsTab('GENERAL')}
-                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${settingsTab === 'GENERAL' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
-                    >Umumiy</button>
-                    <button
-                        onClick={() => setSettingsTab('BACKUP')}
-                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${settingsTab === 'BACKUP' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
-                    >Zaxira (Backup)</button>
-                    <button
-                        onClick={() => setSettingsTab('HEALTH')}
-                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${settingsTab === 'HEALTH' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
-                    >Tizim Holati</button>
-                </div>
+            <header className="mb-8">
+                <h1 className="text-3xl font-black text-gray-900 tracking-tight">Tizim Sozlamalari</h1>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-wide">Global platforma konfiguratsiyasi</p>
             </header>
 
-            {settingsTab === 'BACKUP' && (
-                <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 flex flex-col items-center text-center animate-in fade-in">
-                    <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
-                        <HardDrive size={40} className="text-indigo-500" />
-                    </div>
-                    <h3 className="text-2xl font-black text-gray-900">Ma'lumotlar Bazasi Zaxirasi</h3>
-                    <p className="text-gray-400 mt-2 max-w-md">Bazadan to'liq nusxa olish. Oxirgi nusxa: <span className="font-bold text-gray-900">Bugun, 14:30</span></p>
-
-                    <div className="mt-8 flex gap-4">
-                        <button className="bg-indigo-500 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-wider hover:bg-indigo-600 active:scale-95 transition-all shadow-xl flex items-center gap-2">
-                            <Save size={20} /> Zaxira Yaratish
+            <div className="flex flex-col lg:flex-row gap-8">
+                {/* Sidebar Navigation */}
+                <div className="w-full lg:w-64 space-y-2">
+                    {[
+                        { id: 'GENERAL', label: 'Umumiy', icon: Globe },
+                        { id: 'SECURITY', label: 'Xavfsizlik', icon: Lock },
+                        { id: 'NOTIFICATIONS', label: 'Bildirishnomalar', icon: Bell },
+                        { id: 'API', label: 'API & Integratsiya', icon: Database },
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm ${activeTab === tab.id
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                                }`}
+                        >
+                            <tab.icon size={18} />
+                            {tab.label}
                         </button>
-                        <button className="bg-gray-100 text-gray-500 px-8 py-4 rounded-2xl font-black uppercase tracking-wider hover:bg-gray-200 transition-all flex items-center gap-2">
-                            Yuklab Olish
+                    ))}
+                </div>
+
+                {/* Content Area */}
+                <div className="flex-1 bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                    {activeTab === 'GENERAL' && (
+                        <div className="space-y-6 animate-in fade-in">
+                            <h3 className="text-xl font-black text-gray-900 mb-6">Umumiy Sozlamalar</h3>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase ml-2">Platforma Nomi</label>
+                                    <input
+                                        type="text"
+                                        value={settings.platformName}
+                                        onChange={(e) => setSettings({ ...settings, platformName: e.target.value })}
+                                        className="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-indigo-500/20"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase ml-2">Asosiy Til</label>
+                                        <select
+                                            value={settings.language}
+                                            onChange={(e) => setSettings({ ...settings, language: e.target.value })}
+                                            className="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none"
+                                        >
+                                            <option>O'zbekcha</option>
+                                            <option>Русский</option>
+                                            <option>English</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase ml-2">Vaqt Zonasi</label>
+                                        <select
+                                            value={settings.timezone}
+                                            onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
+                                            className="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none"
+                                        >
+                                            <option>Asia/Tashkent (GMT+5)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="pt-4">
+                                    <label className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 rounded-lg text-indigo-600 accent-indigo-600"
+                                            checked={settings.maintenance}
+                                            onChange={(e) => setSettings({ ...settings, maintenance: e.target.checked })}
+                                        />
+                                        <span className="font-bold text-gray-700 text-sm">Texnik xizmat ko'rsatish rejimi</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'SECURITY' && (
+                        <div className="space-y-6 animate-in fade-in">
+                            <h3 className="text-xl font-black text-gray-900 mb-6">Xavfsizlik</h3>
+                            <div className="bg-rose-50 p-4 rounded-2xl flex items-start gap-3 border border-rose-100 mb-6">
+                                <Shield className="text-rose-600 mt-1" size={20} />
+                                <div>
+                                    <h4 className="font-black text-rose-700 text-sm">Administrator Huquqlari</h4>
+                                    <p className="text-xs text-rose-600 mt-1 font-medium">Ushbu sozlamalar barcha tashkilotlar xavfsizligiga ta'sir qiladi.</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase ml-2">Minimal Parol Uzunligi</label>
+                                    <input
+                                        type="number"
+                                        value={settings.minPasswordLength}
+                                        onChange={(e) => setSettings({ ...settings, minPasswordLength: parseInt(e.target.value) })}
+                                        className="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none"
+                                    />
+                                </div>
+                                <div className="pt-2">
+                                    <label className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl cursor-pointer mb-2">
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 rounded-lg text-indigo-600 accent-indigo-600"
+                                            checked={settings.enable2FA}
+                                            onChange={(e) => setSettings({ ...settings, enable2FA: e.target.checked })}
+                                        />
+                                        <span className="font-bold text-gray-700 text-sm">2-Bosqichli Tasdiqlash (2FA)</span>
+                                    </label>
+                                    <label className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 rounded-lg text-indigo-600 accent-indigo-600"
+                                            checked={settings.deviceCheck}
+                                            onChange={(e) => setSettings({ ...settings, deviceCheck: e.target.checked })}
+                                        />
+                                        <span className="font-bold text-gray-700 text-sm">Yangi qurilmalarni tekshirish</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'API' && (
+                        <div className="space-y-6 animate-in fade-in">
+                            <h3 className="text-xl font-black text-gray-900 mb-6">API Konfiguratsiyasi</h3>
+                            <div className="space-y-4">
+                                <div className="p-4 bg-gray-900 rounded-2xl overflow-hidden relative group">
+                                    <div className="absolute top-2 right-2 px-2 py-1 bg-white/20 rounded text-[10px] text-white font-mono">READ-ONLY</div>
+                                    <p className="text-gray-400 text-xs font-mono mb-2">Public API Key</p>
+                                    <code className="text-emerald-400 font-mono text-sm block break-all">{settings.publicApiKey}</code>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase ml-2">Webhook URL</label>
+                                    <input
+                                        type="text"
+                                        placeholder="https://..."
+                                        value={settings.webhookUrl}
+                                        onChange={(e) => setSettings({ ...settings, webhookUrl: e.target.value })}
+                                        className="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'NOTIFICATIONS' && (
+                        <div className="space-y-6 animate-in fade-in">
+                            <h3 className="text-xl font-black text-gray-900 mb-6">Bildirishnomalar</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl">
+                                    <div>
+                                        <h4 className="font-bold text-gray-700 text-sm">Push Bildirishnomalar</h4>
+                                        <p className="text-xs text-gray-400 mt-1">Brauzer orqali bildirishnomalar</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={settings.pushEnabled ?? true}
+                                            onChange={(e) => setSettings({ ...settings, pushEnabled: e.target.checked })}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+                                <div className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl">
+                                    <div>
+                                        <h4 className="font-bold text-gray-700 text-sm">SMS Bildirishnomalar</h4>
+                                        <p className="text-xs text-gray-400 mt-1">Telefon orqali xabarlar</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={settings.smsEnabled ?? true}
+                                            onChange={(e) => setSettings({ ...settings, smsEnabled: e.target.checked })}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+                                <div className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl">
+                                    <div>
+                                        <h4 className="font-bold text-gray-700 text-sm">Email Bildirishnomalar</h4>
+                                        <p className="text-xs text-gray-400 mt-1">Elektron pochta orqali xabarlar</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={settings.emailEnabled ?? false}
+                                            onChange={(e) => setSettings({ ...settings, emailEnabled: e.target.checked })}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+                                <div className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl">
+                                    <div>
+                                        <h4 className="font-bold text-gray-700 text-sm">Ovozli Chaqiriq</h4>
+                                        <p className="text-xs text-gray-400 mt-1">Navbat chaqirilganda ovozli xabar</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={settings.voiceEnabled ?? true}
+                                            onChange={(e) => setSettings({ ...settings, voiceEnabled: e.target.checked })}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="pt-8 mt-8 border-t border-gray-100 flex justify-end">
+                        <button
+                            id="save-btn"
+                            onClick={handleSave}
+                            className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs shadow-xl hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2"
+                        >
+                            <Save size={18} /> Saqlash
                         </button>
                     </div>
                 </div>
-            )}
-
-            {settingsTab === 'HEALTH' && (
-                <div className="grid grid-cols-3 gap-6 animate-in fade-in">
-                    <div className="bg-emerald-500 text-white p-6 rounded-[2.5rem] shadow-xl shadow-emerald-200">
-                        <div className="flex items-center gap-3 mb-4">
-                            <Activity size={24} />
-                            <span className="font-black uppercase text-xs tracking-widest">API Status</span>
-                        </div>
-                        <h3 className="text-3xl font-black mb-1">Operational</h3>
-                        <p className="opacity-80 text-xs font-bold">100% Uptime</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-3 mb-4 text-gray-400">
-                            <HardDrive size={24} />
-                            <span className="font-black uppercase text-xs tracking-widest">Disk Space</span>
-                        </div>
-                        <h3 className="text-3xl font-black text-gray-900 mb-1">45%</h3>
-                        <div className="h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
-                            <div className="h-full w-[45%] bg-indigo-500 rounded-full"></div>
-                        </div>
-                    </div>
-                    <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-3 mb-4 text-gray-400">
-                            <Cpu size={24} />
-                            <span className="font-black uppercase text-xs tracking-widest">CPU Load</span>
-                        </div>
-                        <h3 className="text-3xl font-black text-gray-900 mb-1">12%</h3>
-                        <div className="h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
-                            <div className="h-full w-[12%] bg-emerald-500 rounded-full"></div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {settingsTab === 'GENERAL' && (
-                <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 animate-in fade-in">
-                    <h3 className="text-xl font-black text-gray-900 mb-6">General Settings</h3>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-                            <span className="font-bold text-gray-600">Maintenance Mode</span>
-                            <div className="w-12 h-6 bg-gray-200 rounded-full p-1 cursor-pointer"><div className="w-4 h-4 bg-white rounded-full shadow-sm"></div></div>
-                        </div>
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-                            <span className="font-bold text-gray-600">Debug Logging</span>
-                            <div className="w-12 h-6 bg-emerald-500 rounded-full p-1 cursor-pointer flex justify-end"><div className="w-4 h-4 bg-white rounded-full shadow-sm"></div></div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            </div>
         </div>
     );
 };

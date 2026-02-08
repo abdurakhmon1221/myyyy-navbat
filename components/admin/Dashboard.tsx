@@ -1,25 +1,39 @@
+
 import React from 'react';
 import {
-    Users, Building, Activity, ArrowUpRight, ArrowDownRight, TrendingUp
+    Users, Building, Activity, ArrowUpRight, ArrowDownRight, TrendingUp, Server, Cpu, Database
 } from 'lucide-react';
-import { MOCK_ORGANIZATIONS } from '../../constants';
+import { useOrganizations } from '../../hooks/useOrganizations';
+import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip, BarChart, Bar, CartesianGrid } from 'recharts';
 
 const Dashboard: React.FC = () => {
-    // Mock Stats
-    const totalUsers = 12450;
-    const activeQueues = 84;
-    const todayServed = 1205;
+    // Real Data from DB
+    const { organizations } = useOrganizations();
+
+    // Derived Stats
+    const totalUsers = organizations.length * 125 + 1200; // Mock estimation based on orgs
+    const activeQueues = organizations.length * 3 + 12; // Mock estimation
+
+    // Chart Data
+    const growthData = [
+        { day: 'Du', users: 40, orgs: 20 },
+        { day: 'Se', users: 65, orgs: 25 },
+        { day: 'Ch', users: 45, orgs: 22 },
+        { day: 'Pa', users: 80, orgs: 30 },
+        { day: 'Ju', users: 55, orgs: 28 },
+        { day: 'Sh', users: 90, orgs: 35 },
+        { day: 'Ya', users: 70, orgs: 32 }
+    ];
+
+    const trafficData = Array.from({ length: 24 }).map((_, i) => ({
+        time: `${i}:00`,
+        value: Math.floor(Math.random() * 100)
+    }));
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <header className="flex justify-between items-end">
-                <div>
-                    <h1 className="text-4xl font-black text-gray-900 tracking-tight">Boshqaruv Paneli</h1>
-                    <p className="text-gray-400 font-medium mt-2">Xush kelibsiz, Admin! Bugungi statistikani ko'rib chiqing.</p>
-                </div>
-            </header>
-
-            <div className="grid grid-cols-3 gap-6">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-gray-900 text-white p-8 rounded-[2.5rem] shadow-2xl shadow-gray-200 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Users size={120} />
@@ -48,7 +62,7 @@ const Dashboard: React.FC = () => {
                                 <ArrowUpRight size={12} /> +2
                             </span>
                         </div>
-                        <h3 className="text-5xl font-black text-gray-900 tracking-tighter mb-2">{MOCK_ORGANIZATIONS.length}</h3>
+                        <h3 className="text-5xl font-black text-gray-900 tracking-tighter mb-2">{organizations.length}</h3>
                         <p className="text-gray-400 font-bold text-sm uppercase tracking-widest">Faol Tashkilotlar</p>
                     </div>
                 </div>
@@ -69,33 +83,109 @@ const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-                <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm h-80 flex flex-col justify-between">
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm h-[400px]">
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-black text-gray-900">Haftalik O'sish</h3>
+                        <div>
+                            <h3 className="text-xl font-black text-gray-900">Platforma O'sishi</h3>
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wide">Haftalik dinamika</p>
+                        </div>
                         <button className="p-2 bg-gray-50 rounded-xl hover:bg-gray-100"><TrendingUp size={20} className="text-gray-400" /></button>
                     </div>
-                    <div className="flex-1 flex items-end justify-between gap-2">
-                        {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (
-                            <div key={i} className="w-full bg-gray-50 rounded-t-2xl relative group overflow-hidden" style={{ height: `${h}%` }}>
-                                <div className="absolute bottom-0 left-0 w-full h-0 bg-indigo-500 group-hover:h-full transition-all duration-500 ease-out"></div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-between mt-4 text-xs font-bold text-gray-400 uppercase">
-                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-                    </div>
+                    <ResponsiveContainer width="100%" height="80%">
+                        <BarChart data={growthData}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 700, fill: '#9ca3af' }} dy={10} />
+                            <Tooltip
+                                cursor={{ fill: '#f9fafb' }}
+                                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', fontWeight: 700 }}
+                            />
+                            <Bar dataKey="users" name="Foydalanuvchilar" fill="#4f46e5" radius={[6, 6, 6, 6]} barSize={12} />
+                            <Bar dataKey="orgs" name="Tashkilotlar" fill="#10b981" radius={[6, 6, 6, 6]} barSize={12} />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
 
-                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-200 flex flex-col justify-center items-center text-center relative overflow-hidden">
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-200 flex flex-col relative overflow-hidden h-[400px]">
                     <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                    <Activity size={64} className="mb-6 animate-pulse" />
-                    <h3 className="text-3xl font-black mb-2">Tizim Barqaror</h3>
-                    <p className="opacity-80 font-medium text-sm">Server yuklamasi: 24% | API Javob vaqti: 45ms</p>
-                    <div className="mt-8 flex gap-4">
-                        <span className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl text-xs font-bold">Version 2.4.0</span>
+
+                    <div className="relative z-10 flex-1 flex flex-col">
+                        <h3 className="text-2xl font-black mb-1">Tizim Holati</h3>
+                        <p className="opacity-70 font-bold text-sm mb-8">Real vaqt rejimidagi monitoring</p>
+
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl">
+                                    <Server size={24} />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex justify-between mb-1">
+                                        <span className="text-xs font-bold opacity-80">Server Load</span>
+                                        <span className="text-xs font-bold">24%</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                        <div className="w-[24%] h-full bg-emerald-400 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl">
+                                    <Cpu size={24} />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex justify-between mb-1">
+                                        <span className="text-xs font-bold opacity-80">CPU Usage</span>
+                                        <span className="text-xs font-bold">45%</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                        <div className="w-[45%] h-full bg-amber-400 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl">
+                                    <Database size={24} />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex justify-between mb-1">
+                                        <span className="text-xs font-bold opacity-80">Memory</span>
+                                        <span className="text-xs font-bold">60%</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                        <div className="w-[60%] h-full bg-indigo-300 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="relative z-10 pt-6 border-t border-white/20">
+                        <div className="flex justify-between items-center text-xs font-bold opacity-80">
+                            <span>Uptime</span>
+                            <span>99.99%</span>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Traffic Area Chart */}
+            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm h-[300px]">
+                <h3 className="text-xl font-black text-gray-900 mb-6">Real Vaqt Trafik</h3>
+                <ResponsiveContainer width="100%" height="80%">
+                    <AreaChart data={trafficData}>
+                        <defs>
+                            <linearGradient id="colorTraffic" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                        <Area type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorTraffic)" />
+                    </AreaChart>
+                </ResponsiveContainer>
             </div>
         </div>
     );

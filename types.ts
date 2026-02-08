@@ -72,12 +72,14 @@ export interface Employee {
   name: string;
   phone?: string;
   imageUrl?: string;
-  status: 'ACTIVE' | 'INACTIVE';
+  role?: string; // e.g. 'Master', 'Manager'
+  status: 'ACTIVE' | 'INACTIVE' | 'OFFLINE' | 'BUSY';
   organizationId: string;
   assignedServiceIds: string[];
   performance: {
     avgWaitTime: number;
     servedCount: number;
+    rating?: number;
   };
   earnedBadges: string[];
 }
@@ -165,4 +167,4 @@ export interface AuditLog {
   ipAddress: string;
 }
 
-export type AdminSection = 'DASHBOARD' | 'COMPANIES' | 'CLIENTS' | 'QUEUES' | 'ANALYTICS' | 'AI_CONSOLE' | 'SETTINGS' | 'LOGS' | 'CMS' | 'ROLES' | 'CRM';
+export type AdminSection = 'DASHBOARD' | 'COMPANIES' | 'CLIENTS' | 'QUEUES' | 'ANALYTICS' | 'AI_CONSOLE' | 'SETTINGS' | 'LOGS' | 'CMS' | 'ROLES' | 'CRM' | 'PROFILE';

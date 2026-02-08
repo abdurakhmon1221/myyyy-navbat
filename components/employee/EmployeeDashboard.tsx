@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Users, Clock, Star, Zap, Coffee, Smartphone, Send, ShieldAlert, ChevronRight, RotateCcw, MoveRight, UserX, Info, AlertTriangle, QrCode, HelpCircle } from 'lucide-react';
+import { Users, Clock, Star, Zap, Coffee, Smartphone, Send, ChevronRight, RotateCcw, MoveRight, UserX, AlertTriangle, QrCode, HelpCircle } from 'lucide-react';
 import { QueueItem } from '../../types';
 import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 
@@ -58,10 +58,10 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
                     { label: 'Reyting', val: dailyStats.rating, icon: <Star size={14} />, color: 'bg-amber-50 text-amber-600' },
                     { label: 'Reja', val: '48%', icon: <Zap size={14} />, color: 'bg-rose-50 text-rose-600' }
                 ].map((item, i) => (
-                    <div key={i} className="p-4 rounded-[1.75rem] bg-white dark:bg-slate-900 border border-[var(--border-main)] flex flex-col items-center justify-center text-center shadow-sm">
-                        <div className={`w-8 h-8 rounded-xl ${item.color} flex items-center justify-center mb-2`}>{item.icon}</div>
-                        <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">{item.label}</p>
-                        <h5 className="text-xs font-black text-[var(--text-main)] mt-0.5">{item.val}</h5>
+                    <div key={i} className="p-4 rounded-[1.75rem] bg-white dark:bg-slate-900 border border-[var(--border-main)] flex flex-col items-center justify-center text-center shadow-sm overflow-hidden">
+                        <div className={`w-8 h-8 rounded-xl ${item.color} flex items-center justify-center mb-2 shrink-0`}>{item.icon}</div>
+                        <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest truncate w-full">{item.label}</p>
+                        <h5 className="text-xs font-black text-[var(--text-main)] mt-0.5 truncate w-full">{item.val}</h5>
                     </div>
                 ))}
             </div>
@@ -87,8 +87,9 @@ const EmployeeDashboard: React.FC<EmployeeDashboardProps> = ({
                         <div className="space-y-2">
                             <h3 className="text-2xl font-black text-[var(--text-main)] tracking-tight">Qabulga tayyor</h3>
                             <p className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-[0.15em]">Tugmani bosing</p>
+                            {waitingCount > 0 && <p className="text-sm font-black text-emerald-600 animate-pulse">Navbatda: {waitingCount} mijoz kutmoqda</p>}
                         </div>
-                        <button onClick={() => handleCallNext()} disabled={waitingCount === 0 || isPaused || isEmergencyStopped} className="w-full bg-emerald-500 text-white font-black py-6 rounded-[2rem] shadow-2xl active:scale-95 transition-all uppercase tracking-[0.2em] text-[11px] disabled:opacity-30">Keyingisini chaqirish</button>
+                        <button onClick={() => handleCallNext()} disabled={waitingCount === 0 || isPaused || isEmergencyStopped} className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:to-teal-500 text-white font-black py-6 rounded-[2rem] shadow-xl shadow-emerald-200 dark:shadow-none active:scale-95 transition-all uppercase tracking-[0.2em] text-[11px] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed">Keyingisini chaqirish</button>
                         <button onClick={() => { setIsPaused(!isPaused); if (!isPaused) setBreakTimer(0); }} className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all ${isPaused ? 'bg-amber-100 text-amber-600' : 'text-gray-400 hover:text-amber-500'}`}>
                             <Coffee size={14} /> {isPaused ? `Tanaffusda: ${formatTime(breakTimer)}` : 'Tanaffusga chiqish'}
                         </button>

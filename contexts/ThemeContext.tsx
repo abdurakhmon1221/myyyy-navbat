@@ -25,9 +25,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const root = window.document.documentElement;
     if (theme === 'dark') {
       root.setAttribute('data-theme', 'dark');
+      root.classList.add('dark');
       localStorage.setItem('navbat_theme', 'dark');
     } else {
       root.removeAttribute('data-theme');
+      root.classList.remove('dark');
       localStorage.setItem('navbat_theme', 'light');
     }
   }, [theme]);

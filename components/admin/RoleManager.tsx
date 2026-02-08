@@ -1,10 +1,13 @@
+
 import React, { useState } from 'react';
 import {
     ShieldCheck, Key, Users, CheckCircle2, Save, X
 } from 'lucide-react';
 import { Permission } from '../../types';
+import { useMobile } from '../../hooks/useMobile';
 
 const RoleManager: React.FC = () => {
+    const isMobile = useMobile();
     // Mock Roles Data
     const [roles, setRoles] = useState([
         { id: '1', name: 'Super Admin', description: 'Tizimning to\'liq boshqaruvi', permissions: ['VIEW_DASHBOARD', 'MANAGE_COMPANIES', 'VIEW_CLIENTS', 'MANAGE_QUEUES', 'MANAGE_CMS', 'MANAGE_ROLES', 'VIEW_LOGS', 'AI_ACCESS'] as Permission[], usersCount: 1 },
@@ -49,21 +52,23 @@ const RoleManager: React.FC = () => {
     ];
 
     return (
-        <div className="space-y-6 animate-in fade-in max-w-5xl mx-auto pb-24">
-            <header className="flex justify-between items-center mb-8">
+        <div className={`space-y-6 animate-in fade-in max-w-5xl mx-auto pb-24 ${isMobile ? 'p-0' : ''}`}>
+            <header className={`flex justify-between items-center ${isMobile ? 'px-4 mb-4' : 'mb-8'}`}>
                 <div>
                     <h1 className="text-3xl font-black text-gray-900 tracking-tight">Rollar va Ruxsatlar</h1>
                     <p className="text-xs text-gray-400 font-bold uppercase tracking-wide">Yangi lavozimlar yarating</p>
                 </div>
-                <button
-                    onClick={() => setEditingRole({ id: null, name: '', permissions: [] })}
-                    className="bg-gray-900 text-white px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-xl flex items-center gap-2"
-                >
-                    <Key size={16} /> Yangi Rol
-                </button>
+                {!isMobile && (
+                    <button
+                        onClick={() => setEditingRole({ id: null, name: '', permissions: [] })}
+                        className="bg-gray-900 text-white px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-xl flex items-center gap-2"
+                    >
+                        <Key size={16} /> Yangi Rol
+                    </button>
+                )}
             </header>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 ${isMobile ? 'px-4' : ''}`}>
                 {roles.map(role => (
                     <div key={role.id} className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
                         <div className="flex justify-between items-start mb-4">
@@ -113,11 +118,11 @@ const RoleManager: React.FC = () => {
 
             {/* Role Editor Modal */}
             {editingRole && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[250] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl space-y-6">
-                        <div className="flex justify-between items-center">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[250] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+                    <div className={`bg-white w-full max-w-2xl rounded-[2.5rem] p-6 md:p-8 shadow-2xl space-y-6 ${isMobile ? 'h-full overflow-y-auto rounded-none' : ''}`}>
+                        <div className="flex justify-between items-center sticky top-0 bg-white z-10 pb-4 border-b border-gray-100">
                             <h3 className="text-2xl font-black text-gray-900">{editingRole.id ? 'Rolni Tahrirlash' : 'Yangi Rol Yaratish'}</h3>
-                            <button onClick={() => setEditingRole(null)} className="p-2 text-gray-400"><X size={24} /></button>
+                            <button onClick={() => setEditingRole(null)} className="p-2 text-gray-400 bg-gray-50 rounded-full hover:bg-gray-100"><X size={24} /></button>
                         </div>
 
                         <div className="space-y-4">
@@ -134,7 +139,7 @@ const RoleManager: React.FC = () => {
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Ruxsatlar (Permissions)</label>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {ALL_PERMISSIONS.map(perm => (
                                         <div
                                             key={perm}
@@ -151,7 +156,7 @@ const RoleManager: React.FC = () => {
                             </div>
                         </div>
 
-                        <button onClick={saveRole} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                        <button onClick={saveRole} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-transform sticky bottom-0">
                             <Save size={20} /> Saqlash
                         </button>
                     </div>

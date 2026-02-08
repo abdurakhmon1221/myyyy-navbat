@@ -2,39 +2,26 @@
  * Haptic Feedback utility to provide physical feedback on mobile devices.
  */
 export const haptics = {
-    /**
-     * Short light vibration for subtle interactions
-     */
     light: () => {
-        if ('vibrate' in navigator) {
-            navigator.vibrate(10);
-        }
+        if ('vibrate' in navigator) navigator.vibrate(10);
     },
-
-    /**
-     * Medium vibration for significant interactions (e.g., success)
-     */
     medium: () => {
-        if ('vibrate' in navigator) {
-            navigator.vibrate(30);
-        }
+        if ('vibrate' in navigator) navigator.vibrate(30);
     },
-
-    /**
-     * Strong vibration for warnings or errors
-     */
     heavy: () => {
-        if ('vibrate' in navigator) {
-            navigator.vibrate([50, 30, 50]);
-        }
+        if ('vibrate' in navigator) navigator.vibrate(60);
     },
-
-    /**
-     * Double pulse for specific confirmations
-     */
     success: () => {
-        if ('vibrate' in navigator) {
-            navigator.vibrate([15, 30, 15]);
-        }
+        if ('vibrate' in navigator) navigator.vibrate([20, 30, 40]);
+    },
+    error: () => {
+        if ('vibrate' in navigator) navigator.vibrate([50, 50, 50, 50, 50]);
+    },
+    warning: () => {
+        if ('vibrate' in navigator) navigator.vibrate([30, 100, 30]);
+    },
+    calling: () => {
+        // Heartbeat-like pattern for when being called to a desk
+        if ('vibrate' in navigator) navigator.vibrate([100, 50, 100, 50, 100]);
     }
 };

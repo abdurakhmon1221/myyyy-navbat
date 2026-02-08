@@ -41,8 +41,8 @@ const QueueTicket: React.FC<QueueTicketProps> = ({
                 <div className="p-8 pb-6">
                     <div className="flex justify-between items-start mb-6">
                         <div className="flex items-center gap-4">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:rotate-3 ${isCalled ? 'bg-emerald-500 text-white' : 'bg-gray-50 dark:bg-slate-800 text-emerald-600'}`}>
-                                <TicketIcon size={30} strokeWidth={2.5} />
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:rotate-3 ${isCalled ? 'bg-emerald-500 text-white' : (isApp ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600' : 'bg-gray-50 dark:bg-slate-800 text-emerald-600')}`}>
+                                {isApp ? <Calendar size={30} strokeWidth={2.5} /> : <TicketIcon size={30} strokeWidth={2.5} />}
                             </div>
                             <div className="min-w-0">
                                 <h4 className="font-black text-[var(--text-main)] text-xl leading-tight truncate tracking-tight">{org.name}</h4>
@@ -57,9 +57,19 @@ const QueueTicket: React.FC<QueueTicketProps> = ({
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-xl w-fit border border-emerald-500/10">
-                        <List size={11} className="text-emerald-500" />
-                        <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">{service?.name || 'Umumiy xizmat'}</span>
+                    <div className="flex items-center gap-2">
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl w-fit border ${isApp ? 'bg-indigo-500/5 border-indigo-500/10' : 'bg-emerald-500/5 border-emerald-500/10'}`}>
+                            {isApp ? <Calendar size={11} className="text-indigo-500" /> : <List size={11} className="text-emerald-500" />}
+                            <span className={`text-[9px] font-black uppercase tracking-widest ${isApp ? 'text-indigo-600' : 'text-emerald-600'}`}>
+                                {isApp ? `BRON: ${new Date(queue.appointmentTime!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : (service?.name || 'Umumiy xizmat')}
+                            </span>
+                        </div>
+                        {isApp && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/5 rounded-xl w-fit border border-emerald-500/10">
+                                <List size={11} className="text-emerald-500" />
+                                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">{service?.name}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

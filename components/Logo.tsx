@@ -11,10 +11,12 @@ interface LogoProps {
 const Logo: React.FC<LogoProps> = ({
   className = "",
   size = 48,
-  primaryColor = "#10b981",
-  secondaryColor = "#64748b",
+  primaryColor = "#10b981", // emerald-500
+  secondaryColor = "#94a3b8", // slate-400
   variant = 'modern'
 }) => {
+  const uniqueId = React.useId ? React.useId().replace(/:/g, '') : Math.random().toString(36).substr(2, 9);
+  const suffix = `-${uniqueId}`;
   return (
     <svg
       width={size}
@@ -22,68 +24,93 @@ const Logo: React.FC<LogoProps> = ({
       viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`${className} transition-transform duration-700 hover:scale-110 active:scale-95`}
+      className={`${className} transition-transform duration-700 hover:scale-105 active:scale-95 drop-shadow-xl`}
     >
       <defs>
-        {/* Main Brand Gradient */}
-        <linearGradient id="navbatMainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#10b981" /> {/* emerald-500 */}
-          <stop offset="100%" stopColor="#059669" /> {/* emerald-600 */}
+        {/* Silver Gradient (Left Figure) */}
+        <linearGradient id={`silverGrad${suffix}`} x1="20%" y1="0%" x2="80%" y2="100%">
+          <stop offset="0%" stopColor="#f1f5f9" /> {/* slate-100 */}
+          <stop offset="50%" stopColor="#cbd5e1" /> {/* slate-300 */}
+          <stop offset="100%" stopColor="#94a3b8" /> {/* slate-400 */}
         </linearGradient>
 
-        {/* Depth Shadow Filter */}
-        <filter id="navbatShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.15" />
-        </filter>
-
-        {/* Inner Glow for 3D Feel */}
-        <filter id="navbatInnerGlow">
-          <feFlood floodColor="white" floodOpacity="0.4" result="glowColor" />
-          <feComposite in="glowColor" in2="SourceGraphic" operator="in" result="glowIn" />
-          <feGaussianBlur stdDeviation="1.5" result="blur" />
-          <feOffset dx="1" dy="1" result="offsetBlur" />
-          <feComposite in="offsetBlur" in2="SourceGraphic" operator="atop" />
-        </filter>
-
-        {/* Glass Effect Overlay */}
-        <linearGradient id="navbatGlass" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="white" stopOpacity="0.05" />
+        {/* Charcoal Gradient (Middle Figure) */}
+        <linearGradient id={`charcoalGrad${suffix}`} x1="20%" y1="0%" x2="80%" y2="100%">
+          <stop offset="0%" stopColor="#64748b" /> {/* slate-500 */}
+          <stop offset="50%" stopColor="#475569" /> {/* slate-600 */}
+          <stop offset="100%" stopColor="#334155" /> {/* slate-700 */}
         </linearGradient>
+
+        {/* Vibrant Green Gradient (Front Figure) */}
+        <linearGradient id={`emeraldGrad${suffix}`} x1="10%" y1="0%" x2="90%" y2="100%">
+          <stop offset="0%" stopColor="#4ade80" /> {/* emerald-400 */}
+          <stop offset="45%" stopColor="#10b981" /> {/* emerald-500 */}
+          <stop offset="100%" stopColor="#047857" /> {/* emerald-700 */}
+        </linearGradient>
+
+        {/* Gloss/Shine Highlight */}
+        <linearGradient id={`shine${suffix}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.7" />
+          <stop offset="40%" stopColor="white" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+
+        {/* Base Gradient */}
+        <radialGradient id={`baseGrad${suffix}`} cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(50 90) rotate(90) scale(10 40)">
+          <stop stopColor="#064e3b" stopOpacity="0.8" />
+          <stop offset="1" stopColor="#064e3b" stopOpacity="0" />
+        </radialGradient>
+
+        {/* Drop Shadow for depth */}
+        <filter id={`shadow${suffix}`} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="1" dy="2" stdDeviation="1.5" floodOpacity="0.4" />
+        </filter>
       </defs>
 
-      {/* Background Orbitrings (Atmospheric) */}
-      <circle cx="50" cy="50" r="45" stroke="url(#navbatMainGrad)" strokeWidth="0.5" strokeOpacity="0.2" fill="none" className="animate-pulse" />
-      <circle cx="50" cy="50" r="38" stroke="url(#navbatMainGrad)" strokeWidth="0.5" strokeOpacity="0.1" fill="none" className="animate-pulse" style={{ animationDelay: '1s' }} />
+      {/* Base/Ground Shadow */}
+      <ellipse cx="50" cy="92" rx="42" ry="5" fill={`url(#baseGrad${suffix})`} />
 
-      {/* The abstract "N" / "Queue" Symbolism */}
-      {/* 3 Steps representing a queue/progression */}
-
-      {/* Step 1: Background Layer */}
-      <rect x="20" y="55" width="16" height="30" rx="6" fill="#10b981" fillOpacity="0.1" stroke="#10b981" strokeWidth="1" strokeOpacity="0.2" />
-
-      {/* Step 2: Middle Layer */}
-      <rect x="42" y="35" width="16" height="50" rx="6" fill="#10b981" fillOpacity="0.2" stroke="#10b981" strokeWidth="1" strokeOpacity="0.3" />
-
-      {/* Step 3: Front Primary Layer (Distinctive element) */}
-      <g filter="url(#navbatShadow)">
-        <rect x="64" y="15" width="16" height="70" rx="6" fill="url(#navbatMainGrad)" />
-        {/* Shine Layer */}
-        <rect x="65" y="16" width="14" height="68" rx="5" fill="url(#navbatGlass)" filter="url(#navbatInnerGlow)" />
+      {/* --- BACK FIGURE (Silver - Furthest) --- */}
+      <g transform="translate(10, 25) scale(0.70)">
+        {/* Body */}
+        <path
+          d="M5 35 Q 5 25, 15 25 Q 25 25, 25 35 L 28 75 Q 28 80, 20 80 L 10 80 Q 2 80, 2 75 Z"
+          fill={`url(#silverGrad${suffix})`}
+          filter={`url(#shadow${suffix})`}
+        />
+        {/* Head */}
+        <circle cx="15" cy="12" r="10" fill={`url(#silverGrad${suffix})`} filter={`url(#shadow${suffix})`} />
+        {/* Shine */}
+        <circle cx="12" cy="9" r="4" fill={`url(#shine${suffix})`} />
       </g>
 
-      {/* The Dot / Head of the figure */}
-      <circle cx="72" cy="10" r="8" fill="url(#navbatMainGrad)" filter="url(#navbatShadow)" />
+      {/* --- MIDDLE FIGURE (Charcoal) --- */}
+      <g transform="translate(30, 18) scale(0.85)">
+        {/* Body */}
+        <path
+          d="M5 35 Q 5 25, 15 25 Q 25 25, 25 35 L 28 75 Q 28 80, 20 80 L 10 80 Q 2 80, 2 75 Z"
+          fill={`url(#charcoalGrad${suffix})`}
+          filter={`url(#shadow${suffix})`}
+        />
+        {/* Head */}
+        <circle cx="15" cy="12" r="10" fill={`url(#charcoalGrad${suffix})`} filter={`url(#shadow${suffix})`} />
+        {/* Shine */}
+        <circle cx="12" cy="9" r="4" fill={`url(#shine${suffix})`} />
+      </g>
 
-      {/* Dynamic Swoosh (Movement) */}
-      <path
-        d="M15 90 Q 50 82, 85 90"
-        stroke="url(#navbatMainGrad)"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeOpacity="0.3"
-        fill="none"
-      />
+      {/* --- FRONT FIGURE (Green - Closest) --- */}
+      <g transform="translate(50, 8) scale(1.05)">
+        {/* Body */}
+        <path
+          d="M5 35 Q 5 25, 15 25 Q 25 25, 25 35 L 29 75 Q 29 80, 20 80 L 10 80 Q 1 80, 1 75 Z"
+          fill={`url(#emeraldGrad${suffix})`}
+          filter={`url(#shadow${suffix})`}
+        />
+        {/* Head */}
+        <circle cx="15" cy="12" r="10" fill={`url(#emeraldGrad${suffix})`} filter={`url(#shadow${suffix})`} />
+        {/* Stronger Shine for focal point */}
+        <circle cx="11" cy="9" r="5" fill={`url(#shine${suffix})`} />
+      </g>
     </svg>
   );
 };

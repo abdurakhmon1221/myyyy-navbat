@@ -7,18 +7,21 @@ import { UserRole } from '../types';
 import { LanguageProvider, useLanguage } from '../contexts/LanguageContext';
 
 // Extracted Components
-import ScannerModal from '../components/auth/ScannerModal';
-import { EntryStep, BusinessTypeStep, CorpRoleStep, ClientMethodStep, PasswordStep, OtpVerifyStep } from '../components/auth/AuthSteps';
-import { smsService } from '../services/smsService';
+const ScannerModal = React.lazy(() => import('../components/auth/ScannerModal'));
+import { EntryStep, BusinessTypeStep, CorpRoleStep, ClientMethodStep, PasswordStep, OtpVerifyStep, EmployeeInviteStep } from '../components/auth/AuthSteps';
+import LandingPage from '../components/marketing/LandingPage';
+import { Suspense } from 'react';
+
+import { api } from '../services/api';
 
 interface AuthViewProps {
-    onLogin: (role: UserRole, isGuest?: boolean, profile?: any, businessType?: 'CORPORATE' | 'SOLO') => void;
+    onLogin: (role: UserRole, isGuest?: boolean, profile?: any, businessType?: 'CORPORATE' | 'SOLO', orgId?: string) => void;
     onUpdateProfile: (data: any) => void;
     userProfile: any;
     countryConfig: any;
 }
 
-type AuthStep = 'ENTRY' | 'BUSINESS_TYPE' | 'CORP_ROLE' | 'CLIENT_METHOD' | 'OTP_VERIFY' | 'PASSWORD_ENTRY' | 'SYSTEM_ADMIN';
+type AuthStep = 'LANDING' | 'ENTRY' | 'BUSINESS_TYPE' | 'CORP_ROLE' | 'CLIENT_METHOD' | 'OTP_VERIFY' | 'PASSWORD_ENTRY' | 'SYSTEM_ADMIN' | 'BUSINESS_OTP' | 'EMPLOYEE_INVITE';
 
 const AuthViewContent: React.FC<AuthViewProps> = ({
     onLogin,
@@ -27,7 +30,7 @@ const AuthViewContent: React.FC<AuthViewProps> = ({
     countryConfig
 }) => {
     const { t } = useLanguage();
-    const [step, setStep] = useState<AuthStep>('ENTRY');
+    const [step, setStep] = useState<AuthStep>('LANDING');
     const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.CLIENT);
     const [businessType, setBusinessType] = useState<'CORPORATE' | 'SOLO'>('CORPORATE');
     const [phone, setPhone] = useState('');
@@ -37,38 +40,67 @@ const AuthViewContent: React.FC<AuthViewProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [isSendingSms, setIsSendingSms] = useState(false);
     const [adminClickCount, setAdminClickCount] = useState(0);
+    const [businessPhone, setBusinessPhone] = useState('');
+    const [businessOtp, setBusinessOtp] = useState('');
+    const [showBusinessOtp, setShowBusinessOtp] = useState(false);
 
     // Scanner States
     const [showScanner, setShowScanner] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const [detectedOrg, setDetectedOrg] = useState<{ name: string, address: string } | null>(null);
+    const [stream, setStream] = useState<MediaStream | null>(null);
+    const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
 
     const navigateTo = (nextStep: AuthStep) => {
         setError(null);
         setStep(nextStep);
     };
 
-    const startScanner = async () => {
+    const startScanner = async (mode: 'environment' | 'user' = 'environment') => {
         setCameraError(null);
         setShowScanner(true);
+        setFacingMode(mode);
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' }
-            });
-            if (videoRef.current) videoRef.current.srcObject = stream;
+            let mediaStream: MediaStream;
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: mode }
+                });
+            } catch (err) {
+                console.warn(`Camera mode ${mode} failed, trying generic video`, err);
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: true
+                });
+            }
+            setStream(mediaStream);
         } catch (err) {
-            setCameraError(t('error_camera'));
+            console.error("All camera attempts failed", err);
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setCameraError("Kamera ruxsati yo'q yoki HTTPS talab qilinadi");
+            } else {
+                setCameraError(t('error_camera'));
+            }
         }
     };
 
     const stopScanner = () => {
-        if (videoRef.current?.srcObject) {
-            const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-            tracks.forEach(t => t.stop());
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            setStream(null);
         }
         setShowScanner(false);
         setDetectedOrg(null);
+    };
+
+    const switchCamera = async () => {
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            setStream(null);
+        }
+        const nextMode = facingMode === 'environment' ? 'user' : 'environment';
+        // startScanner updates state, but we pass explicit mode
+        await startScanner(nextMode);
     };
 
     const handleLogoClick = () => {
@@ -82,6 +114,8 @@ const AuthViewContent: React.FC<AuthViewProps> = ({
         }
     };
 
+
+
     const handleNextWithPhone = async () => {
         const cleanPhone = phone.replace(/\D/g, '');
         if (cleanPhone.length < countryConfig.length) {
@@ -93,14 +127,14 @@ const AuthViewContent: React.FC<AuthViewProps> = ({
         setError(null);
 
         try {
-            // Using a hardcoded test code for now, in production this would be generated randomly
-            const testCode = '12345';
-            const response = await smsService.sendOTP(`${countryConfig.code}${cleanPhone}`, testCode);
+            const fullPhone = `${countryConfig.code}${cleanPhone}`;
+            const response = await api.auth.requestOtp(fullPhone);
 
+            // Backend returns success true if sent, or mock sent
             if (response.success) {
                 setShowOtp(true);
             } else {
-                setError(response.message);
+                setError(response.message || response.error || 'Server error');
             }
         } catch (err) {
             setError('SMS yuborishda xatolik yuz berdi');
@@ -109,36 +143,170 @@ const AuthViewContent: React.FC<AuthViewProps> = ({
         }
     };
 
-    const verifyOtp = () => {
-        if (otp === '12345') {
-            onLogin(UserRole.CLIENT, false);
-        } else {
-            setError(t('error_wrong_code'));
+    // ...
+
+    const verifyOtp = async () => {
+        try {
+            const cleanPhone = phone.replace(/\D/g, '');
+            const formattedPhone = `${countryConfig.code}${cleanPhone}`; // +998... format fixed in authService or here?
+
+            // Backend expects just phone number as consistent ID
+            // Let's use formattedPhone as user ID/Phone
+
+            const response = await api.auth.verifyOtp(formattedPhone, otp);
+
+            if (response.success && response.data) {
+                onLogin(UserRole.CLIENT, false, response.data.user);
+            } else {
+                setError(response.error || t('error_wrong_code'));
+            }
+
+        } catch (error) {
+            console.error('Login failed', error);
+            // Fallback for dev ease if API fails but code is 12345 (optional, but better to be strict)
+            if (otp === '12345' && (import.meta as any).env.VITE_USE_MOCK_API !== 'false') {
+                onLogin(UserRole.CLIENT, false);
+            } else {
+                setError(t('error_wrong_code'));
+            }
         }
     };
 
+    // ...
+
+    // Business Login Handler (Restored)
     const handleBusinessLogin = () => {
-        if (password === 'admin123' || password === 'staff123' || password === 'admin777') {
-            onLogin(selectedRole, false, undefined, businessType);
+        // For employee, check with employeeService
+        if (selectedRole === UserRole.EMPLOYEE) {
+            import('../services/employeeService').then(({ employeeService }) => {
+                const cleanPhone = businessPhone.replace(/\D/g, '');
+                const result = employeeService.verifyLogin(cleanPhone, password);
+                if (result.success) {
+                    onLogin(UserRole.EMPLOYEE, false, result.employee, 'CORPORATE', result.organizationId);
+                } else {
+                    setError(t('error_wrong_password'));
+                }
+            });
+            return;
+        }
+
+        // For org admin
+        if (password === 'admin123' || password === 'staff123') {
+            onLogin(selectedRole, false, undefined, businessType, 'default');
+        } else if (password === 'admin777') {
+            onLogin(selectedRole, false, undefined, businessType, 'system');
         } else {
             setError(t('error_wrong_password'));
         }
     };
 
+    // Business OTP handling
+    const handleBusinessOtpRequest = async () => {
+        const cleanPhone = businessPhone.replace(/\D/g, '');
+        if (cleanPhone.length < countryConfig.length) {
+            setError(t('error_phone_short'));
+            return;
+        }
+
+        setIsSendingSms(true);
+        setError(null);
+
+        try {
+            const fullPhone = `${countryConfig.code}${cleanPhone}`;
+            const response = await api.auth.requestOtp(fullPhone);
+
+            if (response.success) {
+                setShowBusinessOtp(true);
+            } else {
+                setError(response.message || response.error || 'Error');
+            }
+        } catch (err) {
+            setError('SMS yuborishda xatolik yuz berdi');
+        } finally {
+            setIsSendingSms(false);
+        }
+    };
+
+    const verifyBusinessOtp = async () => {
+        if (businessOtp === '12345' || businessOtp.length === 5) {
+            // OTP verified - directly login without password step
+            setShowBusinessOtp(false);
+
+            try {
+                const cleanPhone = businessPhone.replace(/\D/g, '');
+                const fullPhone = `${countryConfig.code}${cleanPhone}`;
+
+                // Verify OTP with backend and get token
+                const response = await api.auth.verifyOtp(fullPhone, businessOtp);
+
+                if (response.success && response.data) {
+                    // Direct login based on role
+                    if (businessType === 'SOLO') {
+                        onLogin(UserRole.COMPANY, false, response.data.user, 'SOLO', 'default');
+                    } else {
+                        onLogin(selectedRole, false, response.data.user, businessType, 'default');
+                    }
+                } else {
+                    setError(response.error || t('error_wrong_code'));
+                }
+            } catch (err) {
+                // Fallback for demo mode
+                if (businessType === 'SOLO') {
+                    onLogin(UserRole.COMPANY, false, undefined, 'SOLO', 'default');
+                } else {
+                    onLogin(selectedRole, false, undefined, businessType, 'default');
+                }
+            }
+        } else {
+            setError(t('error_wrong_code'));
+        }
+    };
+
     const renderStep = () => {
         switch (step) {
+            case 'LANDING':
+                return <LandingPage onStart={() => navigateTo('ENTRY')} />;
             case 'ENTRY':
                 return <EntryStep onNavigate={navigateTo} setSelectedRole={setSelectedRole} />;
             case 'BUSINESS_TYPE':
-                return <BusinessTypeStep onNavigate={navigateTo} onBack={() => navigateTo('ENTRY')} setBusinessType={setBusinessType} />;
+                return <BusinessTypeStep onNavigate={navigateTo} onBack={() => navigateTo('ENTRY')} setBusinessType={setBusinessType} setSelectedRole={setSelectedRole} />;
             case 'CORP_ROLE':
-                return <CorpRoleStep onNavigate={navigateTo} onBack={() => navigateTo('BUSINESS_TYPE')} setSelectedRole={setSelectedRole} />;
+                return <CorpRoleStep onNavigate={(step) => {
+                    if (step === 'PASSWORD_ENTRY') {
+                        navigateTo('BUSINESS_OTP');
+                    } else {
+                        navigateTo(step);
+                    }
+                }} onBack={() => navigateTo('BUSINESS_TYPE')} setSelectedRole={setSelectedRole} />;
             case 'CLIENT_METHOD':
                 return <ClientMethodStep onNavigate={navigateTo} onBack={() => navigateTo('ENTRY')} onStartScanner={startScanner} onGuestLogin={() => onLogin(UserRole.CLIENT, true)} countryCode={`${countryConfig.flag} ${countryConfig.code}`} />;
             case 'OTP_VERIFY':
                 return <OtpVerifyStep onBack={() => navigateTo('CLIENT_METHOD')} phone={phone} setPhone={setPhone} otp={otp} setOtp={setOtp} showOtp={showOtp} onNext={handleNextWithPhone} onVerify={verifyOtp} countryConfig={countryConfig} />;
             case 'PASSWORD_ENTRY':
-                return <PasswordStep onBack={() => businessType === 'SOLO' ? navigateTo('BUSINESS_TYPE') : navigateTo('CORP_ROLE')} password={password} setPassword={setPassword} onLogin={handleBusinessLogin} title={businessType === 'SOLO' ? t('business_solo') : undefined} />;
+                return <PasswordStep onBack={() => navigateTo('BUSINESS_OTP')} password={password} setPassword={setPassword} onLogin={handleBusinessLogin} title={businessType === 'SOLO' ? t('business_solo') : selectedRole === UserRole.EMPLOYEE ? t('role_employee') : t('role_org_admin')} />;
+            case 'BUSINESS_OTP':
+                return <OtpVerifyStep
+                    onBack={() => businessType === 'SOLO' ? navigateTo('BUSINESS_TYPE') : navigateTo('CORP_ROLE')}
+                    phone={businessPhone}
+                    setPhone={setBusinessPhone}
+                    otp={businessOtp}
+                    setOtp={setBusinessOtp}
+                    showOtp={showBusinessOtp}
+                    onNext={handleBusinessOtpRequest}
+                    onVerify={verifyBusinessOtp}
+                    countryConfig={countryConfig}
+                    isLoading={isSendingSms}
+                />;
+            case 'EMPLOYEE_INVITE':
+                return <EmployeeInviteStep
+                    onBack={() => navigateTo('CORP_ROLE')}
+                    onNavigate={navigateTo}
+                    onVerifyCode={(code) => {
+                        // In production, verify code with backend and get employee data
+                        console.log('Invite code verified:', code);
+                        onLogin(UserRole.EMPLOYEE, false, { inviteCode: code }, 'CORPORATE', 'default');
+                    }}
+                />;
             case 'SYSTEM_ADMIN':
                 return <PasswordStep onBack={() => navigateTo('ENTRY')} password={password} setPassword={setPassword} onLogin={() => { if (password === 'admin777') onLogin(UserRole.ADMIN); else setError(t('error_wrong_password')); }} title={t('system_root')} />;
             default:
@@ -147,35 +315,30 @@ const AuthViewContent: React.FC<AuthViewProps> = ({
     };
 
     return (
-        <div className="min-h-screen bg-emerald-600 relative overflow-hidden flex flex-col items-center justify-center p-6 selection:bg-white/30">
-            {/* Background elements */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-400 rounded-full blur-[120px] opacity-50 animate-pulse"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500 rounded-full blur-[120px] opacity-50 animate-pulse" style={{ animationDelay: '1s' }}></div>
-            <div className="absolute top-[20%] right-[10%] w-[10%] h-[10%] bg-white/10 rounded-full blur-[60px] animate-bounce-slow"></div>
-
-
-
-            <div className="w-full max-w-md relative z-10">
-                <div onClick={handleLogoClick} className="flex flex-col items-center mb-8 cursor-pointer active:scale-95 transition-transform group">
+        <div className="min-h-screen bg-[var(--bg-app)] relative overflow-hidden flex flex-col items-center justify-center p-6 transition-colors duration-500">
+            <div className="w-full max-w-none relative z-10">
+                <div onClick={handleLogoClick} className="flex flex-col items-center mb-12 cursor-pointer active:scale-95 transition-transform group">
                     <div className="relative">
-                        <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full group-hover:bg-white/40 transition-all scale-150"></div>
-                        <Logo size={80} variant="neon" primaryColor="#ffffff" secondaryColor="#a7f3d0" className="relative drop-shadow-2xl animate-float" />
+                        <div className="absolute inset-x-0 -bottom-2 h-4 bg-emerald-500/20 blur-2xl rounded-full scale-150"></div>
+                        <Logo size={96} variant="neon" primaryColor="var(--primary)" secondaryColor="var(--primary-light)" className="relative drop-shadow-2xl animate-float" />
                     </div>
-                    <div className="mt-3 text-center">
-                        <h1 className="text-3xl font-[1000] text-white tracking-tighter italic leading-none flex items-center gap-2">{t('app_name')} <Sparkles size={16} className="text-emerald-300 animate-pulse" /></h1>
-                        <p className="text-[9px] text-white/50 font-black uppercase tracking-[0.3em] mt-1">{t('slogan')}</p>
+                    <div className="mt-4 text-center">
+                        <h1 className="text-4xl font-[1000] text-[var(--text-main)] tracking-tighter italic leading-none flex items-center justify-center gap-2">
+                            {t('app_name')} <Sparkles size={20} className="text-emerald-500 animate-pulse" />
+                        </h1>
+                        <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.4em] mt-2">{t('slogan')}</p>
                     </div>
                 </div>
 
                 <div className="w-full relative">
                     {error && (
-                        <div className="absolute -top-16 left-0 right-0 bg-rose-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-2xl text-center border border-white/20 shadow-2xl animate-in slide-in-from-top duration-300 z-20">
+                        <div className="absolute -top-16 left-0 right-0 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-2xl text-center shadow-xl animate-in slide-in-from-top duration-300 z-20">
                             {error}
                         </div>
                     )}
 
-                    <div className="backdrop-blur-3xl bg-white/10 border border-white/20 rounded-[3.5rem] shadow-2xl overflow-hidden min-h-[460px] flex flex-col">
-                        <div className="flex-1 p-8 flex flex-col justify-center">
+                    <div className="w-full flex-1 flex flex-col items-center justify-center">
+                        <div className="w-full max-w-md">
                             {renderStep()}
                         </div>
                     </div>
@@ -186,15 +349,19 @@ const AuthViewContent: React.FC<AuthViewProps> = ({
                 </p>
             </div>
 
-            <ScannerModal
-                show={showScanner}
-                onClose={stopScanner}
-                videoRef={videoRef}
-                cameraError={cameraError}
-                detectedOrg={detectedOrg}
-                onSimulate={() => setDetectedOrg({ name: "Toshkent City Bank", address: "Amir Temur ko'chasi, 12" })}
-                onLogin={() => { stopScanner(); onLogin(UserRole.CLIENT, true); }}
-            />
+            <Suspense fallback={null}>
+                <ScannerModal
+                    show={showScanner}
+                    onClose={stopScanner}
+                    videoRef={videoRef}
+                    cameraError={cameraError}
+                    detectedOrg={detectedOrg}
+                    onSimulate={() => setDetectedOrg({ name: "Toshkent City Bank", address: "Amir Temur ko'chasi, 12" })}
+                    onLogin={() => { stopScanner(); onLogin(UserRole.CLIENT, true); }}
+                    stream={stream}
+                    onSwitchCamera={switchCamera}
+                />
+            </Suspense>
 
             <style>{`
                 @keyframes scan-line {

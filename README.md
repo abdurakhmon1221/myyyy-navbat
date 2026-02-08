@@ -1,20 +1,54 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# NAVBAT - Elektron Navbat Tizimi
 
-# Run and deploy your AI Studio app
+Modern queue management system built with React, TypeScript, and Vite.
 
-This contains everything you need to run your app locally.
+## 🚀 Quick Start
 
-View your app in AI Studio: https://ai.studio/apps/drive/1fYK3ofTqDjziawEzYgI0DoQ5tzwhh8ba
+```bash
+# Install dependencies
+npm install
 
-## Run Locally
+# Run development server
+npm run dev
 
-**Prerequisites:**  Node.js
+# Build for production
+npm run build
 
+# Preview production build
+npm run preview
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🌐 Deployment
+
+### Railway
+1. Connect your GitHub repository to Railway
+2. Railway will auto-detect the config and deploy
+
+### Vercel
+```bash
+npm run build
+# Upload dist/ folder
+```
+
+## 📱 Mobile App (Capacitor)
+
+```bash
+npm install @capacitor/core @capacitor/cli
+npx cap init "Navbat" "com.navbat.app"
+npx cap add android
+npx cap add ios
+npx cap sync
+```
+
+## 🛠 Tech Stack
+- React 19
+- TypeScript
+- Vite 6
+- Tailwind CSS
+- Lucide Icons
+- Recharts
+- Leaflet Maps
+- PWA Support
+
+## 📄 License
+MIT

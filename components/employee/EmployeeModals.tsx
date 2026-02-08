@@ -58,3 +58,32 @@ export const SummaryModal: React.FC<{ show: boolean, onClose: () => void, dailyS
         </div>
     );
 };
+
+export const GuideModal: React.FC<{ show: boolean, onClose: () => void }> = ({ show, onClose }) => {
+    if (!show) return null;
+    return (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[1100] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[3rem] p-8 shadow-2xl space-y-6 animate-in zoom-in">
+                <div className="text-center">
+                    <h3 className="text-xl font-black text-[var(--text-main)]">Qo'llanma</h3>
+                    <p className="text-xs text-[var(--text-muted)]">Qisqacha yo'riqnoma</p>
+                </div>
+                <div className="space-y-4 text-xs font-medium text-[var(--text-main)]">
+                    <div className="flex gap-3">
+                        <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">1</div>
+                        <p>Mijozni chaqirish uchun katta yashil tugmani bosing.</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">2</div>
+                        <p>Agar mijoz kelmasa, "Kelmadi" tugmasi orqali o'tkazib yuboring.</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">3</div>
+                        <p>Boshqa bo'limga o'tkazish uchun "Yo'naltirish" tugmasidan foydalaning.</p>
+                    </div>
+                </div>
+                <button onClick={onClose} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-xs uppercase">Tushunarli</button>
+            </div>
+        </div>
+    );
+};

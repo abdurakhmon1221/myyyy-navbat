@@ -10,7 +10,7 @@ export const notificationService = {
         return permission === 'granted';
     },
 
-    async sendNotification(title: string, body: string, icon = '/favicon.ico') {
+    async sendNotification(title: string, body: string, icon = '/logo.png') {
         if (!('Notification' in window)) return;
         if (Notification.permission === 'granted') {
             try {
@@ -20,9 +20,8 @@ export const notificationService = {
                     body,
                     icon,
                     badge: icon,
-                    vibrate: [200, 100, 200],
                     tag: 'navbat-update'
-                });
+                } as NotificationOptions);
             } catch (e) {
                 // Fallback to simple notification if SW fails
                 new Notification(title, { body, icon });

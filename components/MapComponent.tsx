@@ -1,12 +1,11 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Organization } from '../types';
-import { Building2 } from 'lucide-react';
+import { Navigation } from 'lucide-react';
 
-// Fix Leaflet default icon issue
+// Fix Leaflet Default Icon
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
@@ -16,60 +15,91 @@ let DefaultIcon = L.icon({
     iconSize: [25, 41],
     iconAnchor: [12, 41]
 });
-
 L.Marker.prototype.options.icon = DefaultIcon;
 
 interface MapComponentProps {
     organizations: Organization[];
     onSelectOrg: (org: Organization) => void;
     userLocation?: { lat: number; lng: number };
+    t: (key: string) => string;
 }
 
-// Component to handle map center updates
-const MapUpdater: React.FC<{ center: [number, number] }> = ({ center }) => {
+const LocationControl = () => {
     const map = useMap();
-    useEffect(() => {
-        map.setView(center, map.getZoom());
-    }, [center, map]);
-    return null;
-};
+    const [position, setPosition] = React.useState<[number, number] | null>(null);
 
-const MapComponent: React.FC<MapComponentProps> = ({ organizations, onSelectOrg, userLocation }) => {
-    // Default to Tashkent coordinates
-    const defaultCenter: [number, number] = [41.2995, 69.2401];
-    const [center, setCenter] = useState<[number, number]>(defaultCenter);
-
-    useEffect(() => {
-        if (userLocation) {
-            setCenter([userLocation.lat, userLocation.lng]);
+    const handleLocate = () => {
+        if (!navigator.geolocation) {
+            alert("Geolokatsiya qo'llab-quvvatlanmaydi");
+            return;
         }
-    }, [userLocation]);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                const newPos: [number, number] = [latitude, longitude];
+                setPosition(newPos);
+                map.flyTo(newPos, 15);
+            },
+            (err) => {
+                console.error(err);
+                alert("Joylashuvni aniqlab bo'lmadi. Ruxsat borligini tekshiring.");
+            },
+            { enableHighAccuracy: true }
+        );
+    };
 
     return (
-        <div className="h-full w-full rounded-[2.5rem] overflow-hidden shadow-inner border border-gray-200 dark:border-slate-800 z-0 relative group">
-            <MapContainer center={center} zoom={13} scrollWheelZoom={true} style={{ height: '100%', width: '100%', filter: 'hue-rotate(110deg) saturate(0.8) brightness(0.95)' }} className="dark:brightness-75">
-                <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                />
-                <MapUpdater center={center} />
+        <>
+            <div style={{ position: 'absolute', bottom: '80px', right: '20px', zIndex: 1000 }}>
+                <button
+                    onClick={handleLocate}
+                    className="bg-white p-3 rounded-full shadow-xl active:scale-95 transition-transform text-emerald-600 border border-emerald-100 flex items-center justify-center"
+                    title="Mening joylashuvim"
+                >
+                    <Navigation size={24} className="fill-emerald-100" />
+                </button>
+            </div>
+            {position && (
+                <Marker position={position}>
+                    <Popup>Siz shu yerdasiz</Popup>
+                </Marker>
+            )}
+        </>
+    );
+};
 
+const MapComponent: React.FC<MapComponentProps> = ({ organizations, onSelectOrg, userLocation, t }) => {
+    return (
+        <div style={{ height: '100vh', width: '100%' }}>
+            <MapContainer
+                center={[41.2995, 69.2401]}
+                zoom={12}
+                style={{ height: '100%', width: '100%' }}
+            >
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; OpenStreetMap contributors'
+                />
 
                 {organizations.map(org => (
-                    <Marker
-                        key={org.id}
-                        position={[org.location.lat, org.location.lng]}
-                        eventHandlers={{
-                            click: () => onSelectOrg(org)
-                        }}
-                    >
+                    <Marker key={org.id} position={[org.location.lat, org.location.lng]}>
                         <Popup>
-                            <div className="p-2 min-w-[150px]">
-                                <h3 className="font-bold text-sm text-gray-900">{org.name}</h3>
-                                <p className="text-xs text-gray-500">{org.address}</p>
+                            <strong>{org.name}</strong><br />
+                            <span style={{ fontSize: '12px', color: '#666' }}>{org.address}</span><br />
+                            <div style={{ display: 'flex', gap: '5px', marginTop: '8px' }}>
+                                <button
+                                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${org.location.lat},${org.location.lng}`, '_blank')}
+                                    style={{
+                                        background: '#3b82f6', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '12px'
+                                    }}
+                                >
+                                    Yo'l chizish
+                                </button>
                                 <button
                                     onClick={() => onSelectOrg(org)}
-                                    className="mt-2 w-full bg-emerald-500 text-white py-1 px-3 rounded-lg text-xs font-bold"
+                                    style={{
+                                        background: '#10b981', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '12px'
+                                    }}
                                 >
                                     Navbat olish
                                 </button>
@@ -77,19 +107,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ organizations, onSelectOrg,
                         </Popup>
                     </Marker>
                 ))}
-
-                {userLocation && (
-                    <Marker position={[userLocation.lat, userLocation.lng]} icon={L.icon({
-                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                        iconSize: [25, 41],
-                        iconAnchor: [12, 41],
-                        popupAnchor: [1, -34],
-                        shadowSize: [41, 41]
-                    })}>
-                        <Popup>Siz shu yerdasiz</Popup>
-                    </Marker>
-                )}
+                <LocationControl />
             </MapContainer>
         </div>
     );

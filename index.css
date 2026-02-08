@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --primary: #059669;
   --primary-light: #10b981;
@@ -15,16 +19,21 @@
 }
 
 [data-theme='dark'] {
-  --bg-app: #0f172a;
-  --bg-card: #1e293b;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-main: rgba(255, 255, 255, 0.05);
-  --glass-bg: rgba(30, 41, 59, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5);
-  --skeleton-bg: #334155;
+  --bg-app: #020617;
+  /* Darker slate/black for better contrast */
+  --bg-card: #0f172a;
+  /* Slate 900 */
+  --text-main: #e2e8f0;
+  /* Slate 200 - softer than pure white */
+  --text-muted: #64748b;
+  /* Slate 500 */
+  --border-main: rgba(255, 255, 255, 0.08);
+  /* Slightly more visible border */
+  --glass-bg: rgba(15, 23, 42, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.7);
+  --skeleton-bg: #1e293b;
 }
 
 body {
@@ -41,39 +50,46 @@ body {
 /* Premium Glassmorphism */
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .premium-card {
   background: var(--bg-card);
   border: 1px solid var(--border-main);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.04),
+    0 4px 8px 0 rgba(0, 0, 0, 0.02);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .premium-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
-  border-color: rgba(16, 185, 129, 0.2);
+  transform: translateY(-8px) scale(1.01);
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.1),
+    0 10px 20px -5px rgba(0, 0, 0, 0.05);
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 .premium-button {
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   isolation: isolate;
+  border: 1px solid transparent;
 }
 
 .premium-button::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transform: translateX(-100%);
-  transition: transform 0.6s ease;
+  transition: transform 0.8s ease;
   z-index: -1;
 }
 
@@ -82,7 +98,8 @@ body {
 }
 
 .premium-button:hover {
-  box-shadow: 0 10px 20px -10px rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(16, 185, 129, 0.5);
 }
 
 /* Separation utilities */
@@ -100,16 +117,16 @@ body {
 .glow-border::before {
   content: '';
   position: absolute;
-  inset: -2px;
+  inset: -1px;
   background: linear-gradient(45deg, #10b981, #3b82f6, #8b5cf6);
   border-radius: inherit;
   z-index: -1;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
 }
 
 .glow-border:hover::before {
-  opacity: 0.15;
+  opacity: 0.2;
 }
 
 /* Animations */
@@ -133,9 +150,11 @@ body {
 }
 
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Global */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
+  /* Also style horizontal scrollbar */
 }
 
 ::-webkit-scrollbar-track {
@@ -150,6 +169,10 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* Ensure mobile doesn't auto-hide if we want it to look like desktop, 
+   but typically mobile hides it. If user wants it 'same as desktop', 
+   we might just ensure the container scrolls properly. */
 
 /* Button Micro-interactions */
 button:active {
@@ -500,4 +523,50 @@ input:focus {
 .focus-ring:focus {
   outline: none;
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+}
+
+/* Leaflet Map Styles */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  z-index: 1;
+  background: #f1f5f9;
+}
+
+[data-theme='dark'] .leaflet-container {
+  background: #1e293b;
+}
+
+.leaflet-control-container {
+  z-index: 10;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='dark'] .leaflet-popup-content-wrapper {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-card);
+}
+
+[data-theme='dark'] .leaflet-popup-tip {
+  background: #1e293b;
+}
+
+.custom-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Fix for map taking full height */
+.leaflet-pane {
+  z-index: 1;
 }

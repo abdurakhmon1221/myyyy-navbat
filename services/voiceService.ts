@@ -46,6 +46,8 @@ export const announceTicketCall = (ticketNumber: string, deskNumber: number, lan
     speakAnnouncement(text, lang);
 };
 
+let recognitionInstance: any = null;
+
 export const startListening = (onResult: (text: string) => void, onEnd?: () => void) => {
     // @ts-ignore
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -64,5 +66,13 @@ export const startListening = (onResult: (text: string) => void, onEnd?: () => v
     if (onEnd) recognition.onend = onEnd;
 
     recognition.start();
+    recognitionInstance = recognition;
     return recognition;
+};
+
+export const stopListening = () => {
+    if (recognitionInstance) {
+        recognitionInstance.stop();
+        recognitionInstance = null;
+    }
 };
